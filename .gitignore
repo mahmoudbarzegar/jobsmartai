@@ -1,2 +1,3 @@
 /.idea/*
-/db.sqlite3
+/.myenv/*
+/django_backend/db.sqlite3
