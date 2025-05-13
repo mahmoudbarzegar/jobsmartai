@@ -9,7 +9,7 @@ from .serializers import ResumeSerializer
 
 
 class ResumeViewSet(viewsets.ModelViewSet):
-    http_method_names = ['post']
+    http_method_names = ['post', 'get', 'delete']
     model_class = ResumeModel
     queryset = model_class.objects.all()
     serializer_class = ResumeSerializer
@@ -17,29 +17,44 @@ class ResumeViewSet(viewsets.ModelViewSet):
 
     @extend_schema(
         request={
-            'multipart/form-data': ResumeSerializer
+            "multipart/form-data": {
+                "type": "object",
+                "properties": {
+                    "file": {
+                        "type": "string",
+                        "format": "binary"
+                    },
+                    "linkedin_url": {
+                        "type": "string",
+                        "format": "url"
+                    }
+                },
+                "required": ["file", "linkedin_url"]
+            }
         },
-        parameters=[
-            OpenApiParameter(
-                name='resume_file',
-                type=OpenApiTypes.BINARY,
-                required=True,
-                description="Resume file to upload",
-                style='form'
-            ),
-        ],
-        operation_id="upload_resume",
-        description="Upload resume file and LinkedIn URL"
     )
     def create(self, request, *args, **kwargs):
         try:
             serializer = self.get_serializer(data=request.data)
             if not serializer.is_valid():
                 return Response(
-                    {'status': 'error', 'errorMessage': 'Request is not valid', 'errors': serializer.errors},
+                    {'status': 'error', 'error_message': 'Request is not valid', 'errors': serializer.errors},
                     status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
             serializer.save()
             return Response({'status': 'success', 'result': serializer.data}, status=status.HTTP_201_CREATED)
         except Exception as e:
-            return Response({'status': 'error', 'errorMessage': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'status': 'error', 'error_message': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({'status': 'success', 'result': {'data': serializer.data}}, status=status.HTTP_200_OK)
+
+    def destroy(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            instance.delete()
+            return Response({'status': 'success', 'result': 'Resume deleted successfully'}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'status:': 'error', 'error_message': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
