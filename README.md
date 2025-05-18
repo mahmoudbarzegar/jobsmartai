@@ -13,7 +13,7 @@ Built with Python and Django, this project aims to empower job seekers using the
 ## Folder Structure
 
 ```
-├── jobsmartao/
+├── jobsmartai/
 │   ├── django_backend/         # Backend APP
 │   ├── streamlit_frontend/     # Frontend APP
 ```
