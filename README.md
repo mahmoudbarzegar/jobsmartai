@@ -15,5 +15,5 @@ Built with Python and Django, this project aims to empower job seekers using the
 ```
 ├── jobsmartao/
 │   ├── django_backend/         # Backend APP
-│   ├── streamlit_frontend/     # Frontend hooks
+│   ├── streamlit_frontend/     # Frontend APP
 ```
