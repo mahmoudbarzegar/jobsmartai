@@ -1,4 +1,4 @@
 /.idea/*
-/.myenv/*
+/.venv/*
 /django_backend/db.sqlite3
 /django_backend/media/*
