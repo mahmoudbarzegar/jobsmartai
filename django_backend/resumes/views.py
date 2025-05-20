@@ -1,14 +1,14 @@
-import fitz  # PyMuPDF
+import fitz
 
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from drf_spectacular.utils import extend_schema
 from rest_framework.parsers import MultiPartParser, FormParser
-from django.shortcuts import render
 
 from .models import ResumeModel
 from .serializers import ResumeSerializer
 from core.ai_utils import analyze_resume_with_ollama
+from core.general_utils import extract_text_from_pdf
 
 
 class ResumeViewSet(viewsets.ModelViewSet):
@@ -26,13 +26,9 @@ class ResumeViewSet(viewsets.ModelViewSet):
                     "file": {
                         "type": "string",
                         "format": "binary"
-                    },
-                    "linkedin_url": {
-                        "type": "string",
-                        "format": "url"
                     }
                 },
-                "required": ["file", "linkedin_url"]
+                "required": ["file"]
             }
         },
     )
@@ -43,10 +39,8 @@ class ResumeViewSet(viewsets.ModelViewSet):
                 return Response(
                     {'status': 'error', 'error_message': 'Request is not valid', 'errors': serializer.errors},
                     status=status.HTTP_422_UNPROCESSABLE_ENTITY)
-            text = self.extract_text_from_pdf(request.data['file'])
-            analysis_result = analyze_resume_with_ollama(text)
             serializer.save()
-            return Response({'status': 'success', 'result': analysis_result}, status=status.HTTP_201_CREATED)
+            return Response({'status': 'success', 'result': serializer.data}, status=status.HTTP_201_CREATED)
         except Exception as e:
             return Response({'status': 'error', 'error_message': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -62,10 +56,3 @@ class ResumeViewSet(viewsets.ModelViewSet):
             return Response({'status': 'success', 'result': 'Resume deleted successfully'}, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({'status:': 'error', 'error_message': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-    def extract_text_from_pdf(self, pdf_file):
-        doc = fitz.open(stream=pdf_file.read(), filetype="pdf")
-        text = ""
-        for page in doc:
-            text += page.get_text()
-        return text
