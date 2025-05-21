@@ -1,5 +1,6 @@
 import requests
-
+import json
+import re
 
 def analyze_resume_with_ollama(resume_text):
     prompt = f"""
@@ -15,6 +16,11 @@ def analyze_resume_with_ollama(resume_text):
 
     Resume:
     {resume_text}
+    
+    Please return a valid JSON object only.
+    Do not include Markdown (like ```), no explanations, and no trailing commas.
+    Only a pure JSON object with these fields:
+    full_name, email, phone, skills (as list), latest_job_title, company, years_experience, education_summary, keywords (as list)
     """
 
     response = requests.post(
@@ -27,9 +33,28 @@ def analyze_resume_with_ollama(resume_text):
     )
 
     if response.status_code == 200:
-        return response.json()["response"]
+        return parse_ollama_json_response(response.json()["response"])
     else:
         return "Error: Could not process resume"
+
+
+def parse_ollama_json_response(response_text: str):
+    try:
+        # Remove mark down formatting if exists
+        clean_text = response_text.strip()
+        clean_text = re.sub(r"^```json", "", clean_text)
+        clean_text = re.sub(r"```$", "", clean_text)
+
+        # Trim leading/trailing whitespace or junk
+        json_start = clean_text.find("{")
+        json_end = clean_text.rfind("}") + 1
+        json_str = clean_text[json_start:json_end]
+
+        # Parse safely
+        return json.loads(json_str)
+
+    except Exception as e:
+        return {"error": f"Failed to parse JSON: {str(e)}"}
 
 
 if __name__ == '__main__':

@@ -39,7 +39,11 @@ class ResumeViewSet(viewsets.ModelViewSet):
                 return Response(
                     {'status': 'error', 'error_message': 'Request is not valid', 'errors': serializer.errors},
                     status=status.HTTP_422_UNPROCESSABLE_ENTITY)
-            serializer.save()
+
+            resume_text = extract_text_from_pdf(request.data['file'])
+            analyze_resume_text = analyze_resume_with_ollama(resume_text)
+            
+            serializer.save(resume_info=analyze_resume_text)
             return Response({'status': 'success', 'result': serializer.data}, status=status.HTTP_201_CREATED)
         except Exception as e:
             return Response({'status': 'error', 'error_message': str(e)}, status=status.HTTP_400_BAD_REQUEST)
