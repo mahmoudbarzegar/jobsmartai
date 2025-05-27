@@ -1,5 +1,3 @@
-import fitz
-
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from drf_spectacular.utils import extend_schema
@@ -11,6 +9,9 @@ from core.ai_utils import analyze_resume_with_ollama
 from core.general_utils import extract_text_from_pdf
 
 
+@extend_schema(
+    tags=["Resume"]
+)
 class ResumeViewSet(viewsets.ModelViewSet):
     http_method_names = ['post', 'get', 'delete']
     model_class = ResumeModel
@@ -42,7 +43,7 @@ class ResumeViewSet(viewsets.ModelViewSet):
 
             resume_text = extract_text_from_pdf(request.data['file'])
             analyze_resume_text = analyze_resume_with_ollama(resume_text)
-            
+
             serializer.save(resume_info=analyze_resume_text)
             return Response({'status': 'success', 'result': serializer.data}, status=status.HTTP_201_CREATED)
         except Exception as e:
