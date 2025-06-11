@@ -3,3 +3,4 @@ djangorestframework
 drf-spectacular
 PyMuPDF
 streamlit_option_menu
+pandas

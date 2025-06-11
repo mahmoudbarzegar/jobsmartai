@@ -1,19 +1,8 @@
-import streamlit as st
-import requests
+import pandas as pd
+
 from streamlit_option_menu import option_menu
 
-def call_create_resumes_api(files: dict):
-    url = "http://localhost:8000/api/resumes/"
-    try:
-        response = requests.post(url, files=files)
-        response.raise_for_status()
-        return response.json()
-    except requests.RequestException as e:
-        st.error(f"API request failed: {e}")
-        return None
-
-
-
+from api import *
 
 with st.sidebar:
     selected = option_menu(
@@ -45,10 +34,22 @@ if selected == "Home":
         if result:
             st.success("Create resumes API called successfully!")
             st.json(result)
-elif selected == "Data Analysis":
-    st.title("Data Analysis Page")
+
+elif selected == "Resume":
+    st.title("Resume Page")
+    result = call_list_resumes_api()
+    data = result['result']['data']
+
+    # Convert to DataFrame for display
+    df = pd.DataFrame([{"file": d["file"]} for d in data])
+
+    st.write("### Resumes")
+    for i, row in df.iterrows():
+        cols = st.columns([3, 1])
+        cols[0].write(row["file"])
+        if cols[1].button("View", key=i):
+            st.write(f"**Details for {row['file']}:**")
+            st.json(data[i]["resume_info"])
+
 elif selected == "About":
     st.title("About Page")
-
-
-
