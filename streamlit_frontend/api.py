@@ -24,3 +24,14 @@ def call_list_resumes_api():
     except requests.RequestException as e:
         st.error(f"API request failed: {e}")
         return None
+
+
+def call_search_job_api():
+    url = f"{API_URL}/jobs/search"
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+        return response.json()
+    except requests.RequestException as e:
+        st.error(f"API request failed: {e}")
+        return None

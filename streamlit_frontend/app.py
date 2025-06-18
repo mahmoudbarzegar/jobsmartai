@@ -7,8 +7,8 @@ from api import *
 with st.sidebar:
     selected = option_menu(
         menu_title="Navigation",
-        options=["Home", "Resume", "About"],
-        icons=["house", "file-earmark-fill", "info-circle"],
+        options=["Home", "Resume", "Job", "About"],
+        icons=["house", "file-earmark", "briefcase", "info-circle"],
         menu_icon="cast",
         default_index=0,
     )
@@ -45,11 +45,34 @@ elif selected == "Resume":
 
     st.write("### Resumes")
     for i, row in df.iterrows():
-        cols = st.columns([3, 1])
+        cols = st.columns([3, 2])
         cols[0].write(row["file"])
         if cols[1].button("View", key=i):
             st.write(f"**Details for {row['file']}:**")
             st.json(data[i]["resume_info"])
+        if cols[2].button("Search job"):
+            pass
+
+elif selected == "Job":
+    st.title("Job Page")
+
+    # with st.form(key="job_search_form"):
+    #     keyword = st.text_input(
+    #         "Enter your keyword",
+    #         "python",
+    #         key="placeholder",
+    #     )
+    #     submit_button = st.form_submit_button(label="Search")
+    #
+    # # Handle form submission
+    # if submit_button:
+    #     payload = {
+    #         'keyword': keyword
+    #     }
+    #     result = call_search_job_api(payload)
+    #     if result:
+    #         st.success("Create resumes API called successfully!")
+    #         st.json(result)
 
 elif selected == "About":
     st.title("About Page")
