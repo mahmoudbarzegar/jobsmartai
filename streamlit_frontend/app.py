@@ -45,13 +45,14 @@ elif selected == "Resume":
 
     st.write("### Resumes")
     for i, row in df.iterrows():
-        cols = st.columns([3, 2])
+        cols = st.columns([4, 1, 1])
         cols[0].write(row["file"])
         if cols[1].button("View", key=i):
             st.write(f"**Details for {row['file']}:**")
             st.json(data[i]["resume_info"])
         if cols[2].button("Search job"):
-            pass
+            result = call_search_job_api(data[i]['id'])
+            st.json(result)
 
 elif selected == "Job":
     st.title("Job Page")
