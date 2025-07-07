@@ -52,7 +52,14 @@ elif selected == "Resume":
             st.json(data[i]["resume_info"])
         if cols[2].button("Search job"):
             result = call_search_job_api(data[i]['id'])
-            st.json(result)
+            jobs = result['result']['jobs']
+            jobs_df = pd.DataFrame([{"Title": d["position"], "Link": d["url"]} for d in jobs])
+            st.write("### Jobs")
+
+            for index, item in jobs_df.iterrows():
+                cols = st.columns([2, 5])
+                cols[0].write(item["Title"])
+                cols[1].write(item["Link"])
 
 elif selected == "Job":
     st.title("Job Page")
