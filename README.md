@@ -49,7 +49,7 @@ It runs on a Django backend with a simple Streamlit frontend.
 
 ![JobSmartAI demo](demo.gif)
 
-🕒 Processing Time Note
+🕒 Processing Time Note:
 Since Ollama runs locally, resume analysis may take **up to 3 minutes** depending on your system specs (especially if you don’t have a GPU). This step uses a full language model to extract resume data.
 
 ---
