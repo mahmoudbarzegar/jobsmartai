@@ -35,7 +35,7 @@ It runs on a Django backend with a simple Streamlit frontend.
 
 ---
 
-## Folder Structure
+## 📁 Folder Structure
 
 ```
 ├── jobsmartai/
