@@ -31,10 +31,12 @@ if selected == "Home":
         files = {
             'file': (uploaded_file.name, uploaded_file, uploaded_file.type)
         }
-        result = call_create_resumes_api(files)
-        if result:
-            st.success("Create resumes API called successfully!")
-            st.json(result)
+
+        with st.spinner("Analyzing resume..."):
+            result = call_create_resumes_api(files)
+            if result:
+                st.success("Create resumes API called successfully!")
+                st.json(result)
 
 elif selected == "Resume":
     st.title("Resume Page")
