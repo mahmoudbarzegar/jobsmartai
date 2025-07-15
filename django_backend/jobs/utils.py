@@ -14,7 +14,8 @@ def search_jobs_from_remoteok(skills: dict):
         url = f"https://remoteok.com/api?tags={query}"
         response = requests.get(url, headers=headers)
         if response.status_code == 200:
-            return [{"title": job["position"], "link": job["url"]} for job in response.json()[1:]]
+            return [{"title": job["position"], "link": job["url"], "description": job["description"]}
+                    for job in response.json()[1:]]
         return {}
     except Exception as e:
         return {}
@@ -38,9 +39,15 @@ def search_job_from_relocate_me(skills: dict):
             link_tag = card.select_one(".job__title a")
             url_suffix = link_tag['href'] if link_tag else ""
 
+            job_url = "https://relocate.me" + url_suffix
+            job_result = requests.get(job_url, headers=headers)
+            soup = BeautifulSoup(job_result.text, "html.parser")
+            description_block = soup.select_one(".job-info__description")  # may vary
+       
             jobs.append({
                 "title": title_tag.text.strip() if title_tag else "N/A",
-                "link": "https://relocate.me" + url_suffix
+                "link": job_url,
+                "description": description_block.get_text(separator="\n").strip() if description_block else "No job description found."
             })
         return jobs
 
