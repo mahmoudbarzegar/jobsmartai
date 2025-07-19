@@ -2,6 +2,7 @@ import requests
 import json
 import re
 
+
 def analyze_resume_with_ollama(resume_text):
     prompt = f"""
     You are an HR assistant. Please extract the following from this resume:
@@ -55,6 +56,52 @@ def parse_ollama_json_response(response_text: str):
 
     except Exception as e:
         return {"error": f"Failed to parse JSON: {str(e)}"}
+
+
+def calculate_resume_job_score(resume_text: str, job_description: str):
+    prompt = f"""
+        You are an AI HR assistant. Your task is to evaluate how well a resume matches a job posting.
+    
+        Return a compatibility score between 0 and 100 based on how closely the candidate's resume matches the job description. 
+        The score should consider experience, skills, and job title relevance.
+    
+        Return ONLY the following JSON:
+        {{
+          "score": <integer from 0 to 100>,
+          "reason": "<brief explanation why this score was given>"
+        }}
+    
+        Resume:
+        \"\"\"
+        {resume_text}
+        \"\"\"
+    
+        Job Description:
+        \"\"\"
+        {job_description}
+        \"\"\"
+    """
+    response = requests.post(
+        "http://127.0.0.1:11434/api/generate",
+        json={
+            "model": "mistral",
+            "prompt": prompt,
+            "stream": False
+        }
+    )
+
+    if response.status_code == 200:
+        return parse_ollama_json_response(response.json()["response"])
+    else:
+        return "Error: Could not process resume"
+    # try:
+    #     # extract JSON from response
+    #     start = response.find("{")
+    #     end = response.rfind("}") + 1
+    #     parsed = json.loads(response[start:end])
+    #     return parsed
+    # except Exception as e:
+    #     return {"score": 0, "reason": "Failed to parse Ollama response"}
 
 
 if __name__ == '__main__':

@@ -1,3 +1,6 @@
+import os
+
+from django.conf import settings
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -7,6 +10,8 @@ from .models import JobModel
 from .serializers import JobSerializer
 from .utils import search_jobs_from_remoteok, search_job_from_relocate_me
 from resumes.models import ResumeModel
+from core.general_utils import extract_text_from_pdf
+from core.ai_utils import calculate_resume_job_score
 
 
 @extend_schema(
@@ -55,3 +60,29 @@ class JobViewSet(viewsets.ModelViewSet):
             'status': 'success',
             'result': {"jobs": serializer.data}
         }, status=status.HTTP_200_OK)
+
+    @extend_schema(
+        request={
+            "application/json": {
+                "type": "object",
+                "properties": {
+                    "resume_id": {
+                        "type": "integer"
+                    },
+                    "job_id": {
+                        "type": "integer"
+                    }
+                },
+                "required": ["resume_id", "job_id"]
+            }
+        },
+    )
+    @action(detail=False, methods=['post'], url_path='score')
+    def score(self, request, *args, **kwargs):
+        resume = ResumeModel.objects.get(id=request.data['resume_id'])
+        resume_text = extract_text_from_pdf(resume.file)
+
+        job = JobModel.objects.get(id=request.data['job_id'])
+        score = calculate_resume_job_score(resume_text=resume_text, job_description=job.description)
+
+        return Response({'status': 'success', 'result': score}, status=status.HTTP_200_OK)

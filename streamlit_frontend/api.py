@@ -36,3 +36,15 @@ def call_search_job_api(resume_id: int):
     except requests.RequestException as e:
         st.error(f"API request failed: {e}")
         return None
+
+
+def call_score_job_api(resume_id: int, job_id: int):
+    url = f"{API_URL}/jobs/score"
+    try:
+        payload = {"resume_id": resume_id, "job_id": job_id}
+        response = requests.post(url, json=payload)
+        response.raise_for_status()
+        return response.json()
+    except requests.RequestException as e:
+        st.error(f"API request failed: {e}")
+        return None
