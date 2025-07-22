@@ -33,61 +33,32 @@ if selected == "Home":
         }
 
         with st.spinner("Analyzing resume..."):
-            result = call_create_resumes_api(files)
+            result = call_create_jobs_resumes_api(files)
             if result:
                 st.success("Create resumes API called successfully!")
                 st.json(result)
 
 elif selected == "Resume":
     st.title("Resume Page")
-    result = call_list_resumes_api()
+    result = call_list_jobs_resumes_api()
     data = result['result']['data']
-
-    # Initialize session_state dicts for tracking button clicks if not present
-    if "view_clicked" not in st.session_state:
-        st.session_state.view_clicked = {}
-
-    if "search_job_clicked" not in st.session_state:
-        st.session_state.search_job_clicked = {}
-
-    if "score_clicked" not in st.session_state:
-        st.session_state.score_clicked = {}
 
     st.write("### Resumes")
     for i, row in enumerate(data):
         cols = st.columns([4, 1, 1])
-        cols[0].write(data[i]["file"])
-
-        # View button
-        if cols[1].button("View", key=f"view_{row['id']}"):
-            st.session_state.view_clicked[row['id']] = True
-        if st.session_state.view_clicked.get(row['id'], False):
+        cols[0].write(row["file"])
+        if cols[1].button("View", key=i):
             st.write(f"**Details for {row['file']}:**")
             st.json(row["resume_info"])
-
-        # Search job button
-        if cols[2].button("Search job", key=f"search_{row['id']}"):
-            st.session_state.search_job_clicked[row['id']] = True
-
-        if st.session_state.search_job_clicked.get(row['id'], False):
-            st.session_state.view_clicked[row['id']] = True
+        if cols[2].button("Search job"):
             st.write("### Jobs")
             with st.spinner("Loading jobs..."):
                 time.sleep(3)  # Simulate slow data loading
                 result = call_search_job_api(row['id'])
                 jobs = result['result']['jobs']
                 for index, item in enumerate(jobs):
-                    job_cols = st.columns([2, 5, 1])
-                    job_cols[0].write(item["title"])
-                    job_cols[1].write(item["link"])
-                    if job_cols[2].button("Score", key=f"score_{row['id']}_{item['id']}"):
-                        st.write("### Get Job Score")
-                        st.session_state.score_clicked[(row['id'], item['id'])] = True
-                    if st.session_state.score_clicked.get((row['id'], item['id']), False):
-                        with st.spinner("Loading score..."):
-                            time.sleep(3)  # Simulate slow data loading
-                            job_score_result = call_score_job_api(resume_id=row['id'], job_id=item['id'])
-                            st.write(job_score_result['result'])
-
+                    cols = st.columns([2, 5])
+                    cols[0].write(item["title"])
+                    cols[1].write(item["link"])
 elif selected == "About":
     st.title("About Page")

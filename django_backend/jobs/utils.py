@@ -1,4 +1,5 @@
 import requests
+import fitz
 
 from bs4 import BeautifulSoup
 
@@ -53,3 +54,10 @@ def search_job_from_relocate_me(skills: dict):
 
     except Exception as e:
         return {}
+
+def extract_text_from_pdf(pdf_file):
+    doc = fitz.open(stream=pdf_file.read(), filetype="pdf")
+    text = ""
+    for page in doc:
+        text += page.get_text()
+    return text

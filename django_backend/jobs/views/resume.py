@@ -3,10 +3,10 @@ from rest_framework.response import Response
 from drf_spectacular.utils import extend_schema
 from rest_framework.parsers import MultiPartParser, FormParser
 
-from .models import ResumeModel
-from .serializers import ResumeSerializer
-from core.ai_utils import analyze_resume_with_ollama
-from core.general_utils import extract_text_from_pdf
+from ..models import ResumeModel
+from ..serializers import ResumeSerializer
+from ..ai_utils import analyze_resume_with_ollama
+from ..utils import extract_text_from_pdf
 
 
 @extend_schema(
