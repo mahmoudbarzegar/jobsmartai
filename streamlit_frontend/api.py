@@ -48,3 +48,14 @@ def call_score_job_api(resume_id: int, job_id: int):
     except requests.RequestException as e:
         st.error(f"API request failed: {e}")
         return None
+
+
+def call_list_jobs_api():
+    url = f"{API_URL}/jobs/"
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+        return response.json()
+    except requests.RequestException as e:
+        st.error(f"API request failed: {e}")
+        return None

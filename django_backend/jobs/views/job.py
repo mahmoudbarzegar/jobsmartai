@@ -13,8 +13,15 @@ from ..ai_utils import calculate_resume_job_score
     tags=["Jobs"]
 )
 class JobViewSet(viewsets.ModelViewSet):
-    http_method_names = ['post']
+    http_method_names = ['post', 'get']
     model_class = JobModel
+    queryset = model_class.objects.all()
+    serializer_class = JobSerializer
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({'status': 'success', 'result': {'data': serializer.data}}, status=status.HTTP_200_OK)
 
     @extend_schema(
         request={

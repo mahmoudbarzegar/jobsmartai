@@ -7,7 +7,7 @@ from api import *
 with st.sidebar:
     selected = option_menu(
         menu_title="Navigation",
-        options=["Home", "Resume", "About"],
+        options=["Home", "Resumes", "Jobs", "About"],
         icons=["house", "file-earmark", "briefcase", "info-circle"],
         menu_icon="cast",
         default_index=0,
@@ -37,8 +37,8 @@ if selected == "Home":
                 st.success("Create resumes API called successfully!")
                 st.json(result)
 
-elif selected == "Resume":
-    st.title("Resume Page")
+elif selected == "Resumes":
+    st.title("Resumes Page")
     result = call_list_jobs_resumes_api()
     data = result['result']['data']
 
@@ -59,5 +59,27 @@ elif selected == "Resume":
                     cols = st.columns([2, 5])
                     cols[0].write(item["title"])
                     cols[1].write(item["link"])
+
+elif selected == "Jobs":
+    st.title("Jobs Page")
+    result = call_list_jobs_api()
+    data = result['result']['data']
+
+    st.write("### Jobs")
+    for i, row in enumerate(data):
+        cols = st.columns([4, 1, 1])
+        cols[0].write(row["title"])
+        if cols[1].button("View", key=i):
+            st.write(f"**Details for {row['title']}:**")
+            st.write(f"Resume URL: {row['resume_url']}")
+            st.html(f"<strong style='font-size:25px'>Job Description:</strong><hr/>")
+            st.markdown(row["description"], unsafe_allow_html=True)
+            st.html("<hr/>")
+        if row["score"] is None:
+            if cols[2].button("Score", key=f"{row['id']}_score"):
+                st.write(f"**Score for {row['title']}:**")
+        else:
+            cols[2].write(row["score"])
+
 elif selected == "About":
     st.title("About Page")
