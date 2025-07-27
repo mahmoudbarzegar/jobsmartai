@@ -79,16 +79,16 @@ class JobViewSet(viewsets.ModelViewSet):
             }
         },
     )
-    @action(detail=False, methods=['post'], url_path='score')
-    def score(self, request, *args, **kwargs):
-        resume = ResumeModel.objects.get(id=request.data['resume_id'])
-        resume_text = extract_text_from_pdf(resume.file)
+    @action(detail=False, methods=['get'], url_path='(?P<job_id>[^/.]+)/score')
+    def score(self, request, job_id):
+        try:
+            job = self.model_class.objects.get(id=job_id)
+            resume_text = extract_text_from_pdf(job.resume.file)
+            result = calculate_resume_job_score(resume_text=resume_text, job_description=job.description)
 
-        job = JobModel.objects.get(id=request.data['job_id'])
-        result = calculate_resume_job_score(resume_text=resume_text, job_description=job.description)
-
-        job.score = result['score']
-        job.score_description = result['reason']
-        job.save()
-
-        return Response({'status': 'success', 'result': result}, status=status.HTTP_200_OK)
+            job.score = result['score']
+            job.score_description = result['reason']
+            job.save()
+            return Response({'status': 'success', 'result': result}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'status': 'success', 'result': {'score': 0, 'reason': ''}}, status=status.HTTP_200_OK)

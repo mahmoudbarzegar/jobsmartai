@@ -38,11 +38,10 @@ def call_search_job_api(resume_id: int):
         return None
 
 
-def call_score_job_api(resume_id: int, job_id: int):
-    url = f"{API_URL}/jobs/score"
+def call_score_job_api(job_id: int):
+    url = f"{API_URL}/jobs/{job_id}/score"
     try:
-        payload = {"resume_id": resume_id, "job_id": job_id}
-        response = requests.post(url, json=payload)
+        response = requests.get(url)
         response.raise_for_status()
         return response.json()
     except requests.RequestException as e:

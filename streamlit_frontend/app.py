@@ -78,8 +78,18 @@ elif selected == "Jobs":
         if row["score"] is None:
             if cols[2].button("Score", key=f"{row['id']}_score"):
                 st.write(f"**Score for {row['title']}:**")
+                with st.spinner("Loading score for this job..."):
+                    time.sleep(3)  # Simulate slow data loading
+                    score_result = call_score_job_api(row['id'])
+                    st.html(f"<strong style='font-size:25px'>Score = {score_result['result']['score']}</strong>")
+                    st.html(f"<strong style='font-size:25px'>Score Description for {row['title']}:</strong><hr/>")
+                    st.write(score_result['result']['reason'])
+                    st.html("<hr/>")
         else:
-            cols[2].write(row["score"])
+            if cols[2].button(f"Score = {str(row['score'])}", key=f"{row['id']}-view_score"):
+                st.html(f"<strong style='font-size:25px'>Score Description for {row['title']}:</strong><hr/>")
+                st.write(row["score_description"])
+                st.html("<hr/>")
 
 elif selected == "About":
     st.title("About Page")
