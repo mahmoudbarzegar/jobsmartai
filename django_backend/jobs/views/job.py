@@ -19,7 +19,7 @@ class JobViewSet(viewsets.ModelViewSet):
     serializer_class = JobSerializer
 
     def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
+        queryset = self.filter_queryset(self.get_queryset()).order_by('-id')
         serializer = self.get_serializer(queryset, many=True)
         return Response({'status': 'success', 'result': {'data': serializer.data}}, status=status.HTTP_200_OK)
 
