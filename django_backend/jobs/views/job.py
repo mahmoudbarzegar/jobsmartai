@@ -18,6 +18,20 @@ class JobViewSet(viewsets.ModelViewSet):
     queryset = model_class.objects.all()
     serializer_class = JobSerializer
 
+    def create(self, request, *args, **kwargs):
+        try:
+            resume_instance = ResumeModel.objects.get(id=request.data.get('resume_id'))
+            serializer = self.get_serializer(data=request.data)
+            if not serializer.is_valid():
+                return Response(
+                    {'status': 'error', 'errorMessage': 'Request is not valid', 'errors': serializer.errors},
+                    status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+
+            serializer.save(resume=resume_instance)
+            return Response({'status': 'success', 'result': serializer.data}, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            return Response({'status': 'error', 'errorMessage': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset()).order_by('-id')
         serializer = self.get_serializer(queryset, many=True)
