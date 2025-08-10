@@ -6,7 +6,7 @@ from drf_spectacular.utils import extend_schema
 from ..models import JobModel, ResumeModel
 from ..serializers import JobSerializer
 from ..utils import search_jobs_from_remoteok, search_job_from_relocate_me, extract_text_from_pdf
-from ..ai_utils import calculate_resume_job_score
+from ..ai_utils import calculate_resume_job_score, generate_cover_letter
 
 
 @extend_schema(
@@ -107,3 +107,17 @@ class JobViewSet(viewsets.ModelViewSet):
             return Response({'status': 'success', 'result': result}, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({'status': 'success', 'result': {'score': 0, 'reason': ''}}, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['get'], url_path='(?P<job_id>[^/.]+)/cover-letter')
+    def cover_letter(self, request, job_id):
+        try:
+            job = self.model_class.objects.get(id=job_id)
+            resume_text = extract_text_from_pdf(job.resume.file)
+            result = generate_cover_letter(resume_text=resume_text, job_description=job.description)
+
+            job.cover_letter = result
+            job.save()
+
+            return Response({'status': 'success', 'result': result}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'status': 'success', 'result': str(e)}, status=status.HTTP_200_OK)

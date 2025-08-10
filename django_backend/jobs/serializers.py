@@ -9,7 +9,7 @@ class JobSerializer(serializers.ModelSerializer):
     class Meta:
         model = JobModel
         fields = ['id', 'title', 'description', 'link', 'resume_url', 'score', 'score_description', 'created_at',
-                  'updated_at']
+                  'updated_at', 'cover_letter']
         read_only_fields = ['created_at', 'updated_at']
 
     def get_resume_url(self, obj):

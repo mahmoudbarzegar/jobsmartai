@@ -67,7 +67,7 @@ elif selected == "Jobs":
 
     st.write("### Jobs")
     for i, row in enumerate(data):
-        cols = st.columns([4, 1, 1])
+        cols = st.columns([4, 1, 2, 2])
         cols[0].write(row["title"])
         if cols[1].button("View", key=i):
             st.write(f"**Details for {row['title']}:**")
@@ -89,6 +89,21 @@ elif selected == "Jobs":
             if cols[2].button(f"Score = {str(row['score'])}", key=f"{row['id']}-view_score"):
                 st.html(f"<strong style='font-size:25px'>Score Description for {row['title']}:</strong><hr/>")
                 st.write(row["score_description"])
+                st.html("<hr/>")
+
+        if row["cover_letter"] is None:
+            if cols[3].button("CL", key=f"{row['id']}_cover_letter"):
+                st.write(f"**Creating a cover letter for {row['title']}:**")
+                with st.spinner("Generating cover letter..."):
+                    time.sleep(3)  # Simulate slow data loading
+                    cover_letter_result = call_cover_letter_job_api(row['id'])
+                    st.html("<hr/>")
+                    st.markdown(cover_letter_result['result'], unsafe_allow_html=True)
+                    st.html("<hr/>")
+        else:
+            if cols[3].button(f"CL View", key=f"{row['id']}-view_cover_letter"):
+                st.html("<hr/>")
+                st.markdown(row["cover_letter"], unsafe_allow_html=True)
                 st.html("<hr/>")
 
 elif selected == "Rapid":
