@@ -69,3 +69,13 @@ def call_create_jobs_api(jobs_data: dict):
     except requests.RequestException as e:
         st.error(f"API request failed: {e}")
         return None
+
+def call_cover_letter_job_api(job_id: int):
+    url = f"{API_URL}/jobs/{job_id}/cover-letter"
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+        return response.json()
+    except requests.RequestException as e:
+        st.error(f"API request failed: {e}")
+        return None
