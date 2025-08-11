@@ -22,6 +22,8 @@ It runs on a Django backend with a simple Streamlit frontend.
 - ✅ Extract structured information: name, contact, skills, job title, etc.
 - ✅ Automatically search for real job listings using your **first detected skill**
 - ✅ Live jobs from RemoteOK and Relocate.me
+- ✅ Calculate a compatibility score between the uploaded resume and a job listing
+- ✅ Automatically generate a tailored cover letter for a selected job
 - ✅ Clean UI with Streamlit
 
 ---
@@ -47,7 +49,7 @@ It runs on a Django backend with a simple Streamlit frontend.
 
 ## 📸 Demo
 
-![JobSmartAI demo](demo.gif)
+![JobSmartAI demo](demo.png)
 
 🕒 Processing Time Note:
 Since Ollama runs locally, resume analysis may take **up to 3 minutes** depending on your system specs (especially if you don’t have a GPU). This step uses a full language model to extract resume data.
