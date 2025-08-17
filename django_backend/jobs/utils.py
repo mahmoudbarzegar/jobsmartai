@@ -9,7 +9,6 @@ def search_jobs_from_remoteok(skills: dict):
         headers = {
             "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/112.0.0.0 Safari/537.36"
         }
-        # search_keywords = [title] + skills[:3]  # Limit to first 3 skills
         search_keywords = skills[:1]
         query = "+".join(search_keywords)
         url = f"https://remoteok.com/api?tags={query}"
