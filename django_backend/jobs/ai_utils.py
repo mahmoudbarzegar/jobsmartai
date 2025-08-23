@@ -151,7 +151,5 @@ def generate_cover_letter(resume_text: str, job_description: str) -> str | dict:
 
 if __name__ == '__main__':
     print("Analyzing resume with Ollama...")
-
     print(analyze_resume_with_ollama(resume_text="ai engineer"))
-
     print("Finish Analyzing resume with Ollama...")
