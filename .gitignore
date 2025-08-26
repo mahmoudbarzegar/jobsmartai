@@ -2,3 +2,4 @@
 /.venv/*
 /django_backend/media/*
 /django_backend/db.sqlite
+/django_backend/jobs/data/MahmoudBarzegar.pdf
