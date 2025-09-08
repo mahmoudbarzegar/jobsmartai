@@ -1,0 +1,8 @@
+streamlit
+djangorestframework
+drf-spectacular
+PyMuPDF
+streamlit_option_menu
+pandas
+beautifulsoup4
+requests
