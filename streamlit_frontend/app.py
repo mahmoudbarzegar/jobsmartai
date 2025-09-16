@@ -1,20 +1,27 @@
 import time
 
-from streamlit_option_menu import option_menu
-
 from api import *
 
-with st.sidebar:
-    selected = option_menu(
-        menu_title="Navigation",
-        options=["Home", "Resumes", "Jobs", "Rapid", "About"],
-        icons=["house", "file-earmark", "briefcase", "speedometer", "info-circle"],
-        menu_icon="cast",
-        default_index=0,
-    )
+from streamlit_multi_menu import streamlit_multi_menu
 
-if selected == "Home":
-    st.title("Home Page")
+sub_menus = {
+    "Resume": ["Add Resume", "List Resume"],
+    "Job": ["Add Job", "List Job", "Search Job"],
+}
+
+sub_menu_icons = {
+    "Resume": ["add", "list"],
+    "Job": ["add", "list", "search"],
+}
+selected_menu = streamlit_multi_menu(
+    menu_titles=list(sub_menus.keys()),
+    sub_menus=sub_menus,
+    sub_menu_icons=sub_menu_icons,
+    use_container_width=True
+)
+
+if selected_menu == "Add Resume" or selected_menu is None:
+    st.title("Add a Resume")
     # Create a form
     with st.form(key="resume_form"):
         uploaded_file = st.file_uploader(label="Upload your resume in PDF format", type="pdf")
@@ -30,19 +37,17 @@ if selected == "Home":
         files = {
             'file': (uploaded_file.name, uploaded_file, uploaded_file.type)
         }
-
         with st.spinner("Analyzing resume..."):
             result = call_create_resumes_api(files)
             if result:
                 st.success("Create resumes API called successfully!")
                 st.json(result)
 
-elif selected == "Resumes":
-    st.title("Resumes Page")
+elif selected_menu == "List Resume":
+    st.title("List Resumes")
     result = call_list_resumes_api()
     data = result['result']['data']
 
-    st.write("### Resumes")
     for i, row in enumerate(data):
         cols = st.columns([4, 1, 1])
         cols[0].write(row["file"])
@@ -60,7 +65,7 @@ elif selected == "Resumes":
                     cols[0].write(item["title"])
                     cols[1].write(item["link"])
 
-elif selected == "Jobs":
+elif selected_menu == "Jobs":
     st.title("Jobs Page")
     result = call_list_jobs_api()
     data = result['result']['data']
@@ -106,7 +111,7 @@ elif selected == "Jobs":
                 st.markdown(row["cover_letter"], unsafe_allow_html=True)
                 st.html("<hr/>")
 
-elif selected == "Rapid":
+elif selected_menu == "Rapid":
     result = call_list_resumes_api()
     data = result['result']['data']
     options_list = [row["file"] for row in data]
@@ -129,5 +134,5 @@ elif selected == "Rapid":
                     st.success("Create Jobs API called successfully!")
                     st.json(result)
 
-elif selected == "About":
+elif selected_menu == "About":
     st.title("About Page")
