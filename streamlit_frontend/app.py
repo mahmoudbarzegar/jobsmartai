@@ -65,7 +65,7 @@ elif selected_menu == "List Resume":
                     cols[0].write(item["title"])
                     cols[1].write(item["link"])
 
-elif selected_menu == "Jobs":
+elif selected_menu == "List Job":
     st.title("Jobs Page")
     result = call_list_jobs_api()
     data = result['result']['data']
@@ -111,7 +111,7 @@ elif selected_menu == "Jobs":
                 st.markdown(row["cover_letter"], unsafe_allow_html=True)
                 st.html("<hr/>")
 
-elif selected_menu == "Rapid":
+elif selected_menu == "Add Job":
     result = call_list_resumes_api()
     data = result['result']['data']
     options_list = [row["file"] for row in data]
