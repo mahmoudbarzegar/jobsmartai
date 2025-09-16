@@ -6,3 +6,4 @@ streamlit_option_menu
 pandas
 beautifulsoup4
 requests
+streamlit_multi_menu
