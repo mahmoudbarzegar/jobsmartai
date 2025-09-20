@@ -3,7 +3,7 @@ import time
 from streamlit_multi_menu import streamlit_multi_menu
 
 from api import *
-from resume import add_resume
+from resume import add_resume,list_resume
 
 sub_menus = {
     "Resume": ["Add Resume", "List Resume"],
@@ -24,27 +24,7 @@ selected_menu = streamlit_multi_menu(
 if selected_menu == "Add Resume" or selected_menu is None:
     add_resume()
 elif selected_menu == "List Resume":
-    st.title("List Resumes")
-    result = call_list_resumes_api()
-    data = result['result']['data']
-
-    for i, row in enumerate(data):
-        cols = st.columns([4, 1, 1])
-        cols[0].write(row["file"])
-        if cols[1].button("View", key=i):
-            st.write(f"**Details for {row['file']}:**")
-            st.json(row["resume_info"])
-        if cols[2].button("Search job", key=f"{row['id']}_search_job"):
-            st.write("### Jobs")
-            with st.spinner("Loading jobs..."):
-                time.sleep(3)  # Simulate slow data loading
-                result = call_search_job_api(row['id'])
-                jobs = result['result']['jobs']
-                for index, item in enumerate(jobs):
-                    cols = st.columns([2, 5])
-                    cols[0].write(item["title"])
-                    cols[1].write(item["link"])
-
+    list_resume()
 elif selected_menu == "List Job":
     st.title("Jobs Page")
     result = call_list_jobs_api()
