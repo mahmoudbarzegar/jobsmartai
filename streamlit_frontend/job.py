@@ -2,7 +2,7 @@ import time
 
 import streamlit as st
 
-from api import call_list_jobs_api, call_score_job_api, call_cover_letter_job_api
+from api import call_list_jobs_api, call_score_job_api, call_cover_letter_job_api, call_list_resumes_api, call_create_jobs_api
 
 
 def list_job():
@@ -50,3 +50,27 @@ def list_job():
                 st.html("<hr/>")
                 st.markdown(row["cover_letter"], unsafe_allow_html=True)
                 st.html("<hr/>")
+
+
+def add_job():
+    result = call_list_resumes_api()
+    data = result['result']['data']
+    options_list = [row["file"] for row in data]
+    with st.form(key="job_form"):
+        selected_option = st.selectbox("Select an item", options_list)
+        selected_id = next(row["id"] for row in data if row["file"] == selected_option)
+        title = st.text_input("Enter job title:")
+        description = st.text_area("Enter job description:")
+        submit_button = st.form_submit_button(label="Submit")
+
+        if submit_button:
+            with st.spinner("Store job and get score..."):
+                result = call_create_jobs_api({
+                    'resume_id': selected_id,
+                    'title': title,
+                    'description': description,
+
+                })
+                if result:
+                    st.success("Create Jobs API called successfully!")
+                    st.json(result)
