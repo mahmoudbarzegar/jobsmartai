@@ -28,5 +28,3 @@ elif selected_menu == "List Job":
     list_job()
 elif selected_menu == "Add Job":
     add_job()
-elif selected_menu == "About":
-    st.title("About Page")
