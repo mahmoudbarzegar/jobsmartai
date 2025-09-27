@@ -74,3 +74,10 @@ def add_job():
                 if result:
                     st.success("Create Jobs API called successfully!")
                     st.json(result)
+
+
+def search_job():
+    st.title("Search jobs by keyword")
+    with st.form(key="search_job_form"):
+        keyword = st.text_input("Enter a job keyword")
+        submit_button = st.form_submit_button(label="Submit")

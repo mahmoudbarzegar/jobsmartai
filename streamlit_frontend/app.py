@@ -2,7 +2,7 @@ from streamlit_multi_menu import streamlit_multi_menu
 
 from api import *
 from resume import add_resume, list_resume
-from job import list_job, add_job
+from job import list_job, add_job, search_job
 
 sub_menus = {
     "Resume": ["Add Resume", "List Resume"],
@@ -28,3 +28,5 @@ elif selected_menu == "List Job":
     list_job()
 elif selected_menu == "Add Job":
     add_job()
+elif selected_menu == "Search Job":
+    search_job()
