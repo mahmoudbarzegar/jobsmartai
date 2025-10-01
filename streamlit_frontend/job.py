@@ -1,8 +1,6 @@
 import time
 
-import streamlit as st
-
-from api import call_list_jobs_api, call_score_job_api, call_cover_letter_job_api, call_list_resumes_api, call_create_jobs_api
+from api import *
 
 
 def list_job():
@@ -81,3 +79,18 @@ def search_job():
     with st.form(key="search_job_form"):
         keyword = st.text_input("Enter a job keyword")
         submit_button = st.form_submit_button(label="Submit")
+
+        if submit_button:
+            if keyword is not None:
+                st.write("Skill Keyword:", keyword)
+            else:
+                st.write("Please enter a skill keyword.")
+
+            with st.spinner("Search jobs..."):
+                result = call_search_by_keyword_job_api(skill=keyword)
+                jobs = result['result']['jobs']
+                for index, item in enumerate(jobs):
+                    cols = st.columns([2, 5])
+                    cols[0].write(item["title"])
+                    cols[1].write(item["link"])
+

@@ -83,6 +83,46 @@ class JobViewSet(viewsets.ModelViewSet):
             "application/json": {
                 "type": "object",
                 "properties": {
+                    "skill": {
+                        "type": "string"
+                    }
+                },
+                "required": ["skill"]
+            }
+        },
+    )
+    @action(detail=False, methods=['post'], url_path='search-by-keyword')
+    def search_by_keyword(self, request, *args, **kwargs):
+        try:
+
+            skills = [request.data['skill']]
+
+            jobs_from_remote_ok = search_jobs_from_remoteok(skills=skills)
+            jobs_from_relocate_me = search_job_from_relocate_me(skills=skills)
+
+            jobs = jobs_from_remote_ok + jobs_from_relocate_me
+
+            for job in jobs:
+                try:
+                    job_object = self.model_class(
+                        title=job['title'],
+                        description=job['description'],
+                        link=job['link'],
+                        skill=skills,
+                    )
+                    job_object.save()
+                except Exception as e:
+                    continue
+
+            return Response(data={'status': 'success', 'result': {"jobs": jobs}}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response(data={'status': 'error', 'result': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    @extend_schema(
+        request={
+            "application/json": {
+                "type": "object",
+                "properties": {
                     "resume_id": {
                         "type": "integer"
                     },
