@@ -4,7 +4,7 @@ import fitz
 from bs4 import BeautifulSoup
 
 
-def search_jobs_from_remoteok(skills: dict):
+def search_jobs_from_remoteok(skills: list):
     try:
         headers = {
             "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/112.0.0.0 Safari/537.36"
@@ -21,7 +21,7 @@ def search_jobs_from_remoteok(skills: dict):
         return {}
 
 
-def search_job_from_relocate_me(skills: dict):
+def search_job_from_relocate_me(skills: list):
     try:
         search_keywords = skills[:1]
         query = "+".join(search_keywords)
@@ -29,7 +29,6 @@ def search_job_from_relocate_me(skills: dict):
         headers = {
             "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/112.0.0.0 Safari/537.36"
         }
-
         result = requests.get(url, headers=headers)
         soup = BeautifulSoup(result.text, "html.parser")
 
@@ -43,7 +42,7 @@ def search_job_from_relocate_me(skills: dict):
             job_result = requests.get(job_url, headers=headers)
             soup = BeautifulSoup(job_result.text, "html.parser")
             description_block = soup.select_one(".job-info__description")  # may vary
-       
+
             jobs.append({
                 "title": title_tag.text.strip() if title_tag else "N/A",
                 "link": job_url,
@@ -53,6 +52,7 @@ def search_job_from_relocate_me(skills: dict):
 
     except Exception as e:
         return {}
+
 
 def extract_text_from_pdf(pdf_file):
     doc = fitz.open(stream=pdf_file.read(), filetype="pdf")
