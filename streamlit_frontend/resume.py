@@ -43,7 +43,7 @@ def list_resume():
             st.write("### Jobs")
             with st.spinner("Loading jobs..."):
                 time.sleep(3)  # Simulate slow data loading
-                result = call_search_job_api(row['id'])
+                result = call_search_job_api(resume_id=row['id'])
                 jobs = result['result']['jobs']
                 for index, item in enumerate(jobs):
                     cols = st.columns([2, 5])

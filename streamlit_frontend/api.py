@@ -1,6 +1,8 @@
 import requests
 import streamlit as st
 
+from typing import Optional
+
 API_URL = "http://localhost:8000/api"
 
 
@@ -26,10 +28,22 @@ def call_list_resumes_api():
         return None
 
 
-def call_search_job_api(resume_id: int):
+def call_search_job_api(resume_id: int) -> Optional[dict]:
     url = f"{API_URL}/jobs/search"
     try:
         payload = {"resume_id": resume_id}
+        response = requests.post(url, json=payload)
+        response.raise_for_status()
+        return response.json()
+    except requests.RequestException as e:
+        st.error(f"API request failed: {e}")
+        return None
+
+
+def call_search_by_keyword_job_api(skill: str) -> Optional[dict]:
+    url = f"{API_URL}/jobs/search-by-keyword"
+    try:
+        payload = {"skill": skill}
         response = requests.post(url, json=payload)
         response.raise_for_status()
         return response.json()
@@ -69,6 +83,7 @@ def call_create_jobs_api(jobs_data: dict):
     except requests.RequestException as e:
         st.error(f"API request failed: {e}")
         return None
+
 
 def call_cover_letter_job_api(job_id: int):
     url = f"{API_URL}/jobs/{job_id}/cover-letter"
