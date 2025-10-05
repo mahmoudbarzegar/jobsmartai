@@ -1,6 +1,5 @@
 from streamlit_multi_menu import streamlit_multi_menu
 
-from api import *
 from resume import add_resume, list_resume
 from job import list_job, add_job, search_job
 
