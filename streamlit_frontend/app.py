@@ -1,31 +1,39 @@
-from streamlit_multi_menu import streamlit_multi_menu
+import streamlit as st
+
+from streamlit_option_menu import option_menu
 
 from resume import add_resume, list_resume
 from job import list_job, add_job, search_job
 
-sub_menus = {
-    "Resume": ["Add Resume", "List Resume"],
-    "Job": ["Add Job", "List Job", "Search Job"],
+styles = {
+    "container": {"background-color": "#FFFFFF"},
+    "menu-title": {"color": "#285E82", "font-size": "25px", "font-weight": "bold"},
+    "icon": {"color": "#285E82"},
+    "nav": {"color": "#333333", "font-size": "18px"},
+    "nav-link": {"color": "#333333"},
+    "nav-link-selected": {"background-color": "#3A7CA5", "color": "white"},
+    "hover": {"background-color": "#ddd", "color": "#000000"},
 }
 
-sub_menu_icons = {
-    "Resume": ["add", "list"],
-    "Job": ["add", "list", "search"],
-}
-selected_menu = streamlit_multi_menu(
-    menu_titles=list(sub_menus.keys()),
-    sub_menus=sub_menus,
-    sub_menu_icons=sub_menu_icons,
-    use_container_width=True
-)
 
-if selected_menu == "Add Resume" or selected_menu is None:
+
+with st.sidebar:
+    selected = option_menu(
+        menu_title="Navigation",
+        options=["Add Resume", "List Resume", "Add Job", "List Job", "Search Job"],
+        icons=["file-earmark-person", "list-columns-reverse", "plus-square", "list-columns-reverse", "search"],
+        menu_icon="cast",
+        default_index=0,
+        styles=styles
+    )
+
+if selected == "Add Resume" or selected is None:
     add_resume()
-elif selected_menu == "List Resume":
+elif selected == "List Resume":
     list_resume()
-elif selected_menu == "List Job":
+elif selected == "List Job":
     list_job()
-elif selected_menu == "Add Job":
+elif selected == "Add Job":
     add_job()
-elif selected_menu == "Search Job":
+elif selected == "Search Job":
     search_job()
