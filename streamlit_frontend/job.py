@@ -58,7 +58,7 @@ def add_job():
         selected_option = st.selectbox("Select an item", options_list)
         selected_id = next(row["id"] for row in data if row["file"] == selected_option)
         title = st.text_input("Enter job title:")
-        description = st.text_area("Enter job description:")
+        description = st.text_area("Enter job description:", height=375)
         submit_button = st.form_submit_button(label="Submit")
 
         if submit_button:
@@ -93,4 +93,3 @@ def search_job():
                     cols = st.columns([2, 5])
                     cols[0].write(item["title"])
                     cols[1].write(item["link"])
-
