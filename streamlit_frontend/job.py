@@ -81,11 +81,11 @@ def search_job():
         submit_button = st.form_submit_button(label="Submit")
 
         if submit_button:
-            if keyword is not None:
-                st.write("Skill Keyword:", keyword)
-            else:
+            if keyword.strip() == "" or keyword is None:
                 st.write("Please enter a skill keyword.")
+                return
 
+            st.write("Skill Keyword:", keyword)
             with st.spinner("Search jobs..."):
                 result = call_search_by_keyword_job_api(skill=keyword)
                 jobs = result['result']['jobs']
