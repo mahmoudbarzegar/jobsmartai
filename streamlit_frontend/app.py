@@ -5,6 +5,15 @@ from streamlit_option_menu import option_menu
 from resume import add_resume, list_resume
 from job import list_job, add_job, search_job
 
+
+def load_style(file_path):
+    with open(file_path, "r") as f:
+        css = f.read()
+    st.markdown(f"<style>{css}</style>", unsafe_allow_html=True)
+
+
+load_style("style.css")
+
 styles = {
     "container": {"background-color": "#FFFFFF"},
     "menu-title": {"color": "#285E82", "font-size": "25px", "font-weight": "bold"},
@@ -14,37 +23,6 @@ styles = {
     "nav-link-selected": {"background-color": "#3A7CA5", "color": "white"},
     "hover": {"background-color": "#ddd", "color": "#000000"},
 }
-
-st.markdown("""
-    <style>
-        div.stFormSubmitButton > button {
-            background-color: #3A7CA5;  
-            color: #FFFFFF;          
-        }
-        div.stFormSubmitButton > button:hover {
-              background-color: #D4E4F2;
-              color: #285E82;
-              border-color: #285E82;
-        }
-        div.stForm {
-            border: 3px solid rgba(250, 250, 250, 0.2);
-        }
-         div.stButton > button {
-            background-color: #1E2A36;  
-            color: #A7C7E7;
-            border: 1px solid #3A7CA5;
-            border-radius: 8px;
-            padding: 0.5rem 1rem;
-            transition: all 0.3s ease;      
-        }
-        div.stButton > button:hover {
-            background-color: #285E82;  
-            color: #FFFFFF;   
-            border-color: #285E82;   
-        }
-    </style>
-    """, unsafe_allow_html=True)
-
 with st.sidebar:
     selected = option_menu(
         menu_title="Navigation",
