@@ -3,3 +3,8 @@
 /django_backend/media/*
 /django_backend/jobs/data/MahmoudBarzegar.pdf
 /django_backend/db.sqlite3
+/react-frontend/.env
+/react-frontend/package-lock.json
+/react-frontend/node_modules
+/react-frontend/build
+/react-frontend/.eslintcache
