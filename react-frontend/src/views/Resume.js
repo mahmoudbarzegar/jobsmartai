@@ -16,6 +16,9 @@
 
 */
 // reactstrap components
+
+import React, { useEffect, useState } from "react";
+
 import {
   Badge,
   Card,
@@ -40,6 +43,20 @@ import {
 import Header from "components/Headers/Header.js";
 
 const Resume = () => {
+  const [resumes, setResumes] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    setLoading(true);
+    fetch("http://localhost:8000/api/resumes")
+      .then((res) => res.json())
+      .then((data) => {
+        setResumes(data.result.data);
+        setLoading(false);
+      })
+      .catch((err) => console.error("Error fetching resumes:", err));
+  }, []);
+
   return (
     <>
       <Header />
@@ -60,65 +77,33 @@ const Resume = () => {
                 <thead className="thead-light">
                   <tr>
                     <th scope="col">Resume Name</th>
-                    <th scope="col" />
+                    <th scope="col">Link</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
-                    <th scope="row">
-                      <Media className="align-items-center">
-                        <a
-                          className="avatar rounded-circle mr-3"
-                          href="#pablo"
-                          onClick={(e) => e.preventDefault()}
-                        >
-                          <img
-                            alt="..."
-                            src={require("../assets/img/theme/bootstrap.jpg")}
-                          />
-                        </a>
-                        <Media>
+                  {loading ? (
+                    <tr>
+                      <td>
+                        <span>Please Wait..........</span>
+                      </td>
+                    </tr>
+                  ) : (
+                    resumes.map((resume) => (
+                      <tr key={resume.id}>
+                        <th scope="row">
                           <span className="mb-0 text-sm">
-                            Mahmoud Barzegar Softwate Engineer 1
+                            {resume?.resume_info?.full_name} -{" "}
+                            {resume?.resume_info?.latest_job_title}
                           </span>
-                        </Media>
-                      </Media>
-                    </th>
-                    <td className="text-right">
-                      <UncontrolledDropdown>
-                        <DropdownToggle
-                          className="btn-icon-only text-light"
-                          href="#pablo"
-                          role="button"
-                          size="sm"
-                          color=""
-                          onClick={(e) => e.preventDefault()}
-                        >
-                          <i className="fas fa-ellipsis-v" />
-                        </DropdownToggle>
-                        <DropdownMenu className="dropdown-menu-arrow" right>
-                          <DropdownItem
-                            href="#pablo"
-                            onClick={(e) => e.preventDefault()}
-                          >
-                            Action
-                          </DropdownItem>
-                          <DropdownItem
-                            href="#pablo"
-                            onClick={(e) => e.preventDefault()}
-                          >
-                            Another action
-                          </DropdownItem>
-                          <DropdownItem
-                            href="#pablo"
-                            onClick={(e) => e.preventDefault()}
-                          >
-                            Something else here
-                          </DropdownItem>
-                        </DropdownMenu>
-                      </UncontrolledDropdown>
-                    </td>
-                  </tr>
+                        </th>
+                        <td>
+                          <a href={resume.file} target="_blank">
+                            View
+                          </a>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </Table>
               <CardFooter className="py-4">
