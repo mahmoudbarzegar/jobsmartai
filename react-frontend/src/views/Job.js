@@ -30,6 +30,9 @@ import {
   Container,
   Row,
   Button,
+  Modal,
+  ModalBody,
+  ModalFooter,
 } from "reactstrap";
 // core components
 import Header from "components/Headers/Header.js";
@@ -38,22 +41,26 @@ const Job = () => {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [openDropdown, setOpenDropdown] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedJob, setSelectedJob] = useState(null);
+  const [selectedJob, setSelectedJob] = useState({
+    title: "",
+    description: "",
+  });
+  const [modalOpen, setModalOpen] = React.useState(false);
 
-  const toggleDropdown = (jobId) => {
-    setOpenDropdown(openDropdown === jobId ? null : jobId);
-  };
+  // const handleViewCoverLetter = (jobId) => {
+  //   setIsModalOpen(openDropdown === jobId ? null : jobId);
+  // };
 
   const closeModal = () => {
-    setIsModalOpen(false);
     setSelectedJob(null);
   };
 
-  const handleViewCoverLetter = (job) => {
-    setSelectedJob(job);
-    setIsModalOpen(true);
-    setOpenDropdown(null);
+  const handleViewJobDetail = (title, description) => {
+    setModalOpen(!modalOpen);
+    setSelectedJob({
+      title: title,
+      description: description,
+    });
   };
 
   useEffect(() => {
@@ -66,7 +73,6 @@ const Job = () => {
       })
       .catch((err) => console.error("Error fetching resumes:", err));
   }, []);
-
   return (
     <>
       <Header />
@@ -118,37 +124,34 @@ const Job = () => {
                               role="button"
                               size="sm"
                               color=""
-                              onClick={(e) => {
-                                e.preventDefault();
-                                toggleDropdown(job.id);
-                              }}
+                              onClick={(e) => e.preventDefault()}
                             >
                               <i className="fas fa-ellipsis-v" />
                             </DropdownToggle>
-                            {openDropdown === job.id && (
-                              <DropdownMenu
-                                className="dropdown-menu-arrow"
-                                right
+                            <DropdownMenu className="dropdown-menu-arrow" right>
+                              <DropdownItem
+                                href="#pablo"
+                                onClick={() =>
+                                  handleViewJobDetail(
+                                    job.title,
+                                    job.cover_letter
+                                  )
+                                }
                               >
-                                <DropdownItem
-                                  href="#pablo"
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    handleViewCoverLetter(job);
-                                  }}
-                                >
-                                  {" "}
-                                  View Cover Letter
-                                </DropdownItem>
-
-                                <DropdownItem
-                                  href="#pablo"
-                                  onClick={(e) => e.preventDefault()}
-                                >
-                                  View Job Detail
-                                </DropdownItem>
-                              </DropdownMenu>
-                            )}
+                                View Cover Letter
+                              </DropdownItem>
+                              <DropdownItem
+                                href="#pablo"
+                                onClick={() =>
+                                  handleViewJobDetail(
+                                    job.title,
+                                    job.description
+                                  )
+                                }
+                              >
+                                View Job Detail
+                              </DropdownItem>
+                            </DropdownMenu>
                           </UncontrolledDropdown>
                         </td>
                       </tr>
@@ -160,71 +163,35 @@ const Job = () => {
           </div>
         </Row>
 
-        {/* Modal */}
-        {isModalOpen && selectedJob && (
-          <div className="fixed inset-0 z-50 overflow-y-auto">
-            {/* Backdrop */}
-            <div
-              className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
-              onClick={closeModal}
-            ></div>
-
-            {/* Modal Content */}
-            <div className="flex items-center justify-center min-h-screen p-4">
-              <div className="relative bg-white rounded-lg shadow-xl max-w-2xl w-full p-6">
-                {/* Modal Header */}
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h2 className="text-2xl font-bold text-gray-900">
-                      {selectedJob.title}
-                    </h2>
-                    <p className="text-gray-600 mt-1">{selectedJob.company}</p>
-                  </div>
-                  <button
-                    onClick={closeModal}
-                    className="text-gray-400 hover:text-gray-600 text-2xl leading-none"
-                  >
-                    ×
-                  </button>
-                </div>
-
-                {/* Modal Body */}
-                <div className="border-t border-gray-200 pt-4">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                    Cover Letter
-                  </h3>
-                  <div className="bg-gray-50 rounded-lg p-4 whitespace-pre-wrap text-gray-700">
-                    {selectedJob.cover_letter}
-                  </div>
-                </div>
-
-                {/* Modal Footer */}
-                <div className="mt-6 flex justify-end gap-3">
-                  <button
-                    onClick={closeModal}
-                    className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition-colors"
-                  >
-                    Close
-                  </button>
-                  <button
-                    onClick={closeModal}
-                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-                  >
-                    Edit Cover Letter
-                  </button>
-                </div>
-              </div>
-            </div>
+        <Modal toggle={() => setModalOpen(!modalOpen)} isOpen={modalOpen}>
+          <div className=" modal-header">
+            <h5 className=" modal-title" id="exampleModalLabel">
+              {selectedJob?.title}
+            </h5>
+            <button
+              aria-label="Close"
+              className=" close"
+              type="button"
+              onClick={() => setModalOpen(!modalOpen)}
+            >
+              <span aria-hidden={true}>×</span>
+            </button>
           </div>
-        )}
-
-        {/* Click outside dropdown to close */}
-        {openDropdown && (
-          <div
-            className="fixed inset-0 z-0"
-            onClick={() => setOpenDropdown(null)}
-          ></div>
-        )}
+          <ModalBody>
+            <pre style={{ whiteSpace: "pre-wrap", fontFamily: "inherit" }}>
+              {selectedJob?.description}
+            </pre>
+          </ModalBody>
+          <ModalFooter>
+            <Button
+              color="secondary"
+              type="button"
+              onClick={() => setModalOpen(!modalOpen)}
+            >
+              Close
+            </Button>
+          </ModalFooter>
+        </Modal>
       </Container>
     </>
   );
