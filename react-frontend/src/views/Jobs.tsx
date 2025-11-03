@@ -25,7 +25,6 @@ import {
   DropdownItem,
   UncontrolledDropdown,
   DropdownToggle,
-  Media,
   Table,
   Container,
   Row,
@@ -55,6 +54,7 @@ const Jobs = () => {
   const [loading, setLoading] = useState(false);
   const [selectedJob, setSelectedJob] = useState<JobDetail>();
   const [jobDetailModalOpen, setJobDetailModalOpen] = React.useState(false);
+  const [jobAddModalOpen, setJobAddModalOpen] = useState(false);
 
   const handleViewJobDetail = (title: string, detail: string | undefined) => {
     setJobDetailModalOpen(!jobDetailModalOpen);
@@ -64,7 +64,9 @@ const Jobs = () => {
     });
   };
 
-  const handleAddJob = () => {};
+  const handleAddJob = (e: object) => {
+    setJobAddModalOpen(!jobAddModalOpen);
+  };
 
   useEffect(() => {
     setLoading(true);
@@ -86,7 +88,11 @@ const Jobs = () => {
             <Card className="shadow">
               <CardHeader className="bg-transparent border-0">
                 <div className="col-12">
-                  <Button color="info" type="button">
+                  <Button
+                    color="info"
+                    type="button"
+                    onClick={(e) => handleAddJob(e)}
+                  >
                     Add Job
                   </Button>
                 </div>
@@ -198,7 +204,10 @@ const Jobs = () => {
             </Button>
           </ModalFooter>
         </Modal>
-        {/* <Modal toggle={() => setModalOpen(!modalOpen)} isOpen={modalOpen}>
+        <Modal
+          toggle={() => setJobAddModalOpen(!jobAddModalOpen)}
+          isOpen={jobAddModalOpen}
+        >
           <div className=" modal-header">
             <h5 className=" modal-title" id="exampleModalLabel">
               {selectedJob?.title}
@@ -207,26 +216,22 @@ const Jobs = () => {
               aria-label="Close"
               className=" close"
               type="button"
-              onClick={() => setModalOpen(!modalOpen)}
+              onClick={() => setJobAddModalOpen(!jobAddModalOpen)}
             >
               <span aria-hidden={true}>×</span>
             </button>
           </div>
-          <ModalBody>
-            <pre style={{ whiteSpace: "pre-wrap", fontFamily: "inherit" }}>
-              {selectedJob?.description}
-            </pre>
-          </ModalBody>
+          <ModalBody>This is a Job Add Form.</ModalBody>
           <ModalFooter>
             <Button
               color="secondary"
               type="button"
-              onClick={() => setModalOpen(!modalOpen)}
+              onClick={() => setJobAddModalOpen(!jobAddModalOpen)}
             >
               Close
             </Button>
           </ModalFooter>
-        </Modal> */}
+        </Modal>
       </Container>
     </>
   );
