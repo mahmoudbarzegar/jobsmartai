@@ -35,33 +35,36 @@ import {
   ModalFooter,
 } from "reactstrap";
 // core components
-import Header from "components/Headers/Header.js";
+import Header from "components/Headers/Header";
 
-const Job = () => {
-  const [jobs, setJobs] = useState([]);
+interface Job {
+  id: number;
+  title: string;
+  description: string;
+  cover_letter?: string;
+  score?: string;
+  resume_url: string;
+}
+interface JobDetail {
+  title: string;
+  detail?: string;
+}
+
+const Jobs = () => {
+  const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(false);
-  const [openDropdown, setOpenDropdown] = useState(null);
-  const [selectedJob, setSelectedJob] = useState({
-    title: "",
-    description: "",
-  });
-  const [modalOpen, setModalOpen] = React.useState(false);
+  const [selectedJob, setSelectedJob] = useState<JobDetail>();
+  const [jobDetailModalOpen, setJobDetailModalOpen] = React.useState(false);
 
-  // const handleViewCoverLetter = (jobId) => {
-  //   setIsModalOpen(openDropdown === jobId ? null : jobId);
-  // };
-
-  const closeModal = () => {
-    setSelectedJob(null);
-  };
-
-  const handleViewJobDetail = (title, description) => {
-    setModalOpen(!modalOpen);
+  const handleViewJobDetail = (title: string, detail: string | undefined) => {
+    setJobDetailModalOpen(!jobDetailModalOpen);
     setSelectedJob({
       title: title,
-      description: description,
+      detail: detail,
     });
   };
+
+  const handleAddJob = () => {};
 
   useEffect(() => {
     setLoading(true);
@@ -89,7 +92,7 @@ const Job = () => {
                 </div>
               </CardHeader>
               <Table className="align-items-center table-flush" responsive>
-                <thead className="thead-light">
+                <thead className="thead-black">
                   <tr>
                     <th scope="col">Job Name</th>
                     <th scope="col">Score</th>
@@ -119,7 +122,7 @@ const Job = () => {
                         <td className="text-right">
                           <UncontrolledDropdown>
                             <DropdownToggle
-                              className="btn-icon-only text-light"
+                              className="btn-icon-only text-black"
                               href="#pablo"
                               role="button"
                               size="sm"
@@ -163,7 +166,39 @@ const Job = () => {
           </div>
         </Row>
 
-        <Modal toggle={() => setModalOpen(!modalOpen)} isOpen={modalOpen}>
+        <Modal
+          toggle={() => setJobDetailModalOpen(!jobDetailModalOpen)}
+          isOpen={jobDetailModalOpen}
+        >
+          <div className=" modal-header">
+            <h5 className=" modal-title" id="exampleModalLabel">
+              {selectedJob?.title}
+            </h5>
+            <button
+              aria-label="Close"
+              className=" close"
+              type="button"
+              onClick={() => setJobDetailModalOpen(!jobDetailModalOpen)}
+            >
+              <span aria-hidden={true}>×</span>
+            </button>
+          </div>
+          <ModalBody>
+            <pre style={{ whiteSpace: "pre-wrap", fontFamily: "inherit" }}>
+              {selectedJob?.detail}
+            </pre>
+          </ModalBody>
+          <ModalFooter>
+            <Button
+              color="secondary"
+              type="button"
+              onClick={() => setJobDetailModalOpen(!jobDetailModalOpen)}
+            >
+              Close
+            </Button>
+          </ModalFooter>
+        </Modal>
+        {/* <Modal toggle={() => setModalOpen(!modalOpen)} isOpen={modalOpen}>
           <div className=" modal-header">
             <h5 className=" modal-title" id="exampleModalLabel">
               {selectedJob?.title}
@@ -191,10 +226,10 @@ const Job = () => {
               Close
             </Button>
           </ModalFooter>
-        </Modal>
+        </Modal> */}
       </Container>
     </>
   );
 };
 
-export default Job;
+export default Jobs;
