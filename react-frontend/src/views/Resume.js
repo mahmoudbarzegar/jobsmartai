@@ -32,7 +32,7 @@ import {
   Button,
 } from "reactstrap";
 // core components
-import Header from "components/Headers/Header.js";
+import Header from "components/Headers/Header";
 
 const Resume = () => {
   const [resumes, setResumes] = useState([]);
