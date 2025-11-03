@@ -23,7 +23,7 @@ import Index from "views/Index.js";
 // import Tables from "views/examples/Tables.js";
 import Icons from "views/examples/Icons.js";
 import Resume from "views/Resume.js";
-import Job from "views/Job.js";
+import Jobs from "views/Jobs";
 
 var routes = [
   {
@@ -41,10 +41,10 @@ var routes = [
     layout: "/admin",
   },
   {
-    path: "/job",
-    name: "Job",
+    path: "/jobs",
+    name: "Jobs",
     icon: "ni ni-bullet-list-67 text-info",
-    component: <Job />,
+    component: <Jobs />,
     layout: "/admin",
   },
   {
