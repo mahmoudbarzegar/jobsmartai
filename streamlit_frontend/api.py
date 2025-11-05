@@ -7,7 +7,7 @@ API_URL = "http://localhost:8000/api"
 
 
 def call_create_resumes_api(files: dict):
-    url = f"{API_URL}/jobs/resumes"
+    url = f"{API_URL}/resumes"
     try:
         response = requests.post(url, files=files)
         response.raise_for_status()
@@ -18,7 +18,7 @@ def call_create_resumes_api(files: dict):
 
 
 def call_list_resumes_api():
-    url = f"{API_URL}/jobs/resumes"
+    url = f"{API_URL}/resumes"
     try:
         response = requests.get(url)
         response.raise_for_status()
@@ -64,7 +64,7 @@ def call_score_job_api(job_id: int):
 
 
 def call_list_jobs_api():
-    url = f"{API_URL}/jobs/"
+    url = f"{API_URL}/jobs"
     try:
         response = requests.get(url)
         response.raise_for_status()
@@ -75,7 +75,7 @@ def call_list_jobs_api():
 
 
 def call_create_jobs_api(jobs_data: dict):
-    url = f"{API_URL}/jobs/"
+    url = f"{API_URL}/jobs"
     try:
         response = requests.post(url, json=jobs_data)
         response.raise_for_status()
