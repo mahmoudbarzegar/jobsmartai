@@ -48,6 +48,10 @@ interface JobDetail {
   title: string;
   detail?: string;
 }
+interface Resume {
+  id: number;
+  file?: string;
+}
 
 const Jobs = () => {
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -55,7 +59,13 @@ const Jobs = () => {
   const [selectedJob, setSelectedJob] = useState<JobDetail>();
   const [jobDetailModalOpen, setJobDetailModalOpen] = React.useState(false);
   const [jobAddModalOpen, setJobAddModalOpen] = useState(false);
+  const [resumes, setResumes] = useState<Resume[]>([]);
 
+  const [newJob, setNewJob] = useState({
+    title: "",
+    description: "",
+    resume_id: "",
+  });
   const handleViewJobDetail = (title: string, detail: string | undefined) => {
     setJobDetailModalOpen(!jobDetailModalOpen);
     setSelectedJob({
@@ -68,6 +78,45 @@ const Jobs = () => {
     setJobAddModalOpen(!jobAddModalOpen);
   };
 
+  // Add this handler function
+  const handleInputChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
+  ) => {
+    const { name, value } = e.target;
+    setNewJob((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  // Add this submit handler
+  const handleSubmitJob = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    try {
+      const response = await fetch("http://localhost:8000/api/jobs", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(newJob),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        // Refresh the jobs list
+        setJobs([data.result, ...jobs]);
+        // Close modal and reset form
+        setJobAddModalOpen(false);
+        setNewJob({ title: "", description: "", resume_id: "" });
+      }
+    } catch (error) {
+      console.error("Error adding job:", error);
+    }
+  };
+
   useEffect(() => {
     setLoading(true);
     fetch("http://localhost:8000/api/jobs")
@@ -78,6 +127,18 @@ const Jobs = () => {
       })
       .catch((err) => console.error("Error fetching resumes:", err));
   }, []);
+
+  // Fetch resumes when component mounts (add to existing useEffect or create new one)
+  useEffect(() => {
+    fetch("http://localhost:8000/api/resumes")
+      .then((res) => res.json())
+      .then((data) => {
+        setResumes(data.result.data); // Adjust based on your API response structure
+      })
+      .catch((err) => console.error("Error fetching resumes:", err));
+  }, []);
+
+  console.log(jobs);
   return (
     <>
       <Header />
@@ -208,29 +269,90 @@ const Jobs = () => {
           toggle={() => setJobAddModalOpen(!jobAddModalOpen)}
           isOpen={jobAddModalOpen}
         >
-          <div className=" modal-header">
-            <h5 className=" modal-title" id="exampleModalLabel">
-              {selectedJob?.title}
+          <div className="modal-header">
+            <h5 className="modal-title" id="exampleModalLabel">
+              Add a New Job
             </h5>
             <button
               aria-label="Close"
-              className=" close"
+              className="close"
               type="button"
               onClick={() => setJobAddModalOpen(!jobAddModalOpen)}
             >
               <span aria-hidden={true}>×</span>
             </button>
           </div>
-          <ModalBody>This is a Job Add Form.</ModalBody>
-          <ModalFooter>
-            <Button
-              color="secondary"
-              type="button"
-              onClick={() => setJobAddModalOpen(!jobAddModalOpen)}
-            >
-              Close
-            </Button>
-          </ModalFooter>
+          <form onSubmit={handleSubmitJob}>
+            <ModalBody>
+              <div className="form-group">
+                <label htmlFor="jobTitle" className="form-label">
+                  Job Title <span className="text-danger">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="jobTitle"
+                  name="title"
+                  className="form-control"
+                  placeholder="e.g. Backend Software Engineer"
+                  value={newJob.title}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="jobDescription" className="form-label">
+                  Job Description <span className="text-danger">*</span>
+                </label>
+                <textarea
+                  id="jobDescription"
+                  name="description"
+                  className="form-control"
+                  rows={6}
+                  placeholder="Paste the job description here..."
+                  value={newJob.description}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="resumeSelect" className="form-label">
+                  Select Resume <span className="text-danger">*</span>
+                </label>
+                <select
+                  id="resumeSelect"
+                  name="resume_id"
+                  className="form-control"
+                  value={newJob.resume_id}
+                  onChange={handleInputChange}
+                  required
+                >
+                  <option value="">-- Select a Resume --</option>
+                  {resumes.map((resume) => (
+                    <option key={resume.id} value={resume.id}>
+                      {resume.file}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </ModalBody>
+            <ModalFooter>
+              <Button
+                color="secondary"
+                type="button"
+                onClick={() => {
+                  setJobAddModalOpen(false);
+                  setNewJob({ title: "", description: "", resume_id: "" });
+                }}
+              >
+                Cancel
+              </Button>
+              <Button color="primary" type="submit">
+                Add Job
+              </Button>
+            </ModalFooter>
+          </form>
         </Modal>
       </Container>
     </>
