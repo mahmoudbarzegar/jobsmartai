@@ -87,8 +87,10 @@ const Resume = () => {
                 <tbody>
                   {loading ? (
                     <tr>
-                      <td>
-                        <span>Please Wait..........</span>
+                      <td colSpan={4} className="text-center py-4">
+                        <div className="d-flex justify-content-center align-items-center">
+                          <span className="fa fa-spinner fa-spin fa-2x text-primary" />
+                        </div>
                       </td>
                     </tr>
                   ) : (
