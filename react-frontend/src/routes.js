@@ -22,7 +22,7 @@ import Index from "views/Index.js";
 // import Login from "views/examples/Login.js";
 // import Tables from "views/examples/Tables.js";
 import Icons from "views/examples/Icons.js";
-import Resume from "views/Resume.js";
+import Resume from "views/Resume";
 import Jobs from "views/Jobs";
 
 var routes = [
