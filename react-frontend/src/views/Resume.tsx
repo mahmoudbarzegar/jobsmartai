@@ -34,8 +34,20 @@ import {
 // core components
 import Header from "components/Headers/Header";
 
+interface Resume {
+  id: number;
+  file: string;
+  resume_info: {
+    full_name: string;
+    latest_job_title: string;
+  };
+  cover_letter?: string;
+  score?: string;
+  resume_url: string;
+}
+
 const Resume = () => {
-  const [resumes, setResumes] = useState([]);
+  const [resumes, setResumes] = useState<Resume[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -108,7 +120,7 @@ const Resume = () => {
                       <PaginationLink
                         href="#pablo"
                         onClick={(e) => e.preventDefault()}
-                        tabIndex="-1"
+                        tabIndex={-1}
                       >
                         <i className="fas fa-angle-left" />
                         <span className="sr-only">Previous</span>
