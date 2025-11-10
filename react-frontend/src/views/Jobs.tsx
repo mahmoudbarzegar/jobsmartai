@@ -180,7 +180,15 @@ const Jobs = () => {
                     jobs.map((job) => (
                       <tr key={job.id}>
                         <th scope="row">
-                          <span className="mb-0 text-sm">{job?.title}</span>
+                          <span
+                            className="mb-0 text-sm text-truncate d-inline-block job-title-hover"
+                            title={job?.title}
+                          >
+                            {" "}
+                            {job?.title?.length > 35
+                              ? job?.title?.substring(0, 35) + "..."
+                              : job?.title}
+                          </span>
                         </th>
                         <th scope="col">{job?.score}</th>
                         <td>
