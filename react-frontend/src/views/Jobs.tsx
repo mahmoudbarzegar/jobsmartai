@@ -190,7 +190,15 @@ const Jobs = () => {
                               : job?.title}
                           </span>
                         </th>
-                        <th scope="col">{job?.score}</th>
+                        <th scope="col">
+                          {job?.score ? (
+                            job?.score
+                          ) : (
+                            <Button color="info" type="button">
+                              Get core
+                            </Button>
+                          )}
+                        </th>
                         <td>
                           <a href={job?.resume_url} target="_blank">
                             View
