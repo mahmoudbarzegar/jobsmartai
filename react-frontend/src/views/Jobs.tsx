@@ -60,12 +60,38 @@ const Jobs = () => {
   const [jobDetailModalOpen, setJobDetailModalOpen] = React.useState(false);
   const [jobAddModalOpen, setJobAddModalOpen] = useState(false);
   const [resumes, setResumes] = useState<Resume[]>([]);
-
+  const [loadingScores, setLoadingScores] = useState<Record<number, boolean>>(
+    {}
+  );
   const [newJob, setNewJob] = useState({
     title: "",
     description: "",
     resume_id: "",
   });
+
+  // fetch score for a job and update state
+  const handleGetScore = async (jobId: number) => {
+    setLoadingScores((prev) => ({ ...prev, [jobId]: true }));
+    try {
+      const res = await fetch(`http://localhost:8000/api/jobs/${jobId}/score`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      // support different response shapes: data.result.score or data.score
+      const score = (
+        data?.result?.score ??
+        data?.score ??
+        String(data?.result ?? data ?? "")
+      ).toString();
+      setJobs((prev) =>
+        prev.map((j) => (j.id === jobId ? { ...j, score } : j))
+      );
+    } catch (err) {
+      console.error("Error fetching score:", err);
+    } finally {
+      setLoadingScores((prev) => ({ ...prev, [jobId]: false }));
+    }
+  };
+
   const handleViewJobDetail = (title: string, detail: string | undefined) => {
     setJobDetailModalOpen(!jobDetailModalOpen);
     setSelectedJob({
@@ -194,8 +220,17 @@ const Jobs = () => {
                           {job?.score ? (
                             job?.score
                           ) : (
-                            <Button color="info" type="button">
-                              Get core
+                            <Button
+                              color="info"
+                              type="button"
+                              onClick={() => handleGetScore(job.id)}
+                              disabled={!!loadingScores[job.id]}
+                            >
+                              {loadingScores[job.id] ? (
+                                <span className="fa fa-spinner fa-spin" />
+                              ) : (
+                                "Get score"
+                              )}
                             </Button>
                           )}
                         </th>
