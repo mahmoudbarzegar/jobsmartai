@@ -47,20 +47,20 @@ const AdminNavbar = (props) => {
           </Link>
           <Form className="navbar-search navbar-search-dark form-inline mr-3 d-none d-md-flex ml-lg-auto">
             <FormGroup className="mb-0">
-              <InputGroup className="input-group-alternative">
+              {/* <InputGroup className="input-group-alternative">
                 <InputGroupAddon addonType="prepend">
                   <InputGroupText>
                     <i className="fas fa-search" />
                   </InputGroupText>
                 </InputGroupAddon>
                 <Input placeholder="Search" type="text" />
-              </InputGroup>
+              </InputGroup> */}
             </FormGroup>
           </Form>
           <Nav className="align-items-center d-none d-md-flex" navbar>
             <UncontrolledDropdown nav>
               <DropdownToggle className="pr-0" nav>
-                <Media className="align-items-center">
+                {/* <Media className="align-items-center">
                   <span className="avatar avatar-sm rounded-circle">
                     <img
                       alt="..."
@@ -72,7 +72,7 @@ const AdminNavbar = (props) => {
                       Jessica Jones
                     </span>
                   </Media>
-                </Media>
+                </Media> */}
               </DropdownToggle>
               <DropdownMenu className="dropdown-menu-arrow" right>
                 <DropdownItem className="noti-title" header tag="div">
