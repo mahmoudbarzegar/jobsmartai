@@ -32,7 +32,8 @@ import {
 import Header from "components/Headers/Header";
 
 const Icons = () => {
-  const [copiedText, setCopiedText] = useState();
+  const [copiedText, setCopiedText] = useState<string>("");
+
   return (
     <>
       <Header />

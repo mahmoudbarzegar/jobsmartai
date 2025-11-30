@@ -15,6 +15,7 @@
     "noEmit": true,
     "paths": {
       "components/*": ["components/*"],
+      "views/*": ["views/*"],
       "*": ["src/*"]
     }
   }
