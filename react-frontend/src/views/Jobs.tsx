@@ -45,8 +45,10 @@ interface Job {
   resume_url: string;
 }
 interface JobDetail {
+  id: number;
   title: string;
-  detail?: string;
+  description?: string;
+  cover_letter?: string;
 }
 interface Resume {
   id: number;
@@ -63,6 +65,9 @@ const Jobs = () => {
   const [loadingScores, setLoadingScores] = useState<Record<number, boolean>>(
     {}
   );
+  const [loadingCoverLetter, setLoadingCoverLetter] = useState<
+    Record<string, boolean>
+  >({});
   const [newJob, setNewJob] = useState({
     title: "",
     description: "",
@@ -91,12 +96,42 @@ const Jobs = () => {
       setLoadingScores((prev) => ({ ...prev, [jobId]: false }));
     }
   };
-
-  const handleViewJobDetail = (title: string, detail: string | undefined) => {
+  // fetch score for a job and update state
+  const handleGenerateCoverLetter = async (jobId: number) => {
+    setLoadingScores((prev) => ({ ...prev, [jobId]: true }));
+    try {
+      const res = await fetch(
+        `http://localhost:8000/api/jobs/${jobId}/cover-letter`
+      );
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      // support different response shapes: data.result.score or data.score
+      const cover_letter = (
+        data?.result?.cover_letter ??
+        data?.score ??
+        String(data?.result ?? data ?? "")
+      ).toString();
+      setJobs((prev) =>
+        prev.map((j) => (j.id === jobId ? { ...j, cover_letter } : j))
+      );
+    } catch (err) {
+      console.error("Error fetching cover letter:", err);
+    } finally {
+      setLoadingCoverLetter((prev) => ({ ...prev, [jobId]: false }));
+    }
+  };
+  const handleViewJobDetail = (
+    id: number,
+    title: string,
+    description: string | undefined,
+    cover_letter: string | undefined
+  ) => {
     setJobDetailModalOpen(!jobDetailModalOpen);
     setSelectedJob({
+      id: id,
       title: title,
-      detail: detail,
+      description: description,
+      cover_letter: cover_letter,
     });
   };
 
@@ -164,7 +199,6 @@ const Jobs = () => {
       .catch((err) => console.error("Error fetching resumes:", err));
   }, []);
 
-  console.log(jobs);
   return (
     <>
       <Header />
@@ -256,7 +290,9 @@ const Jobs = () => {
                                 href="#pablo"
                                 onClick={() =>
                                   handleViewJobDetail(
+                                    job.id,
                                     job.title,
+                                    undefined,
                                     job.cover_letter
                                   )
                                 }
@@ -267,8 +303,10 @@ const Jobs = () => {
                                 href="#pablo"
                                 onClick={() =>
                                   handleViewJobDetail(
+                                    job.id,
                                     job.title,
-                                    job.description
+                                    job.description,
+                                    undefined
                                   )
                                 }
                               >
@@ -290,33 +328,56 @@ const Jobs = () => {
           toggle={() => setJobDetailModalOpen(!jobDetailModalOpen)}
           isOpen={jobDetailModalOpen}
         >
-          <div className=" modal-header">
-            <h5 className=" modal-title" id="exampleModalLabel">
-              {selectedJob?.title}
-            </h5>
-            <button
-              aria-label="Close"
-              className=" close"
-              type="button"
-              onClick={() => setJobDetailModalOpen(!jobDetailModalOpen)}
-            >
-              <span aria-hidden={true}>×</span>
-            </button>
-          </div>
-          <ModalBody>
-            <pre style={{ whiteSpace: "pre-wrap", fontFamily: "inherit" }}>
-              {selectedJob?.detail}
-            </pre>
-          </ModalBody>
-          <ModalFooter>
-            <Button
-              color="secondary"
-              type="button"
-              onClick={() => setJobDetailModalOpen(!jobDetailModalOpen)}
-            >
-              Close
-            </Button>
-          </ModalFooter>
+          {selectedJob ? (
+            <>
+              <div className=" modal-header">
+                <h5 className=" modal-title" id="exampleModalLabel">
+                  {selectedJob?.title}
+                </h5>
+                <button
+                  aria-label="Close"
+                  className=" close"
+                  type="button"
+                  onClick={() => setJobDetailModalOpen(!jobDetailModalOpen)}
+                >
+                  <span aria-hidden={true}>×</span>
+                </button>
+              </div>
+              <ModalBody>
+                <pre style={{ whiteSpace: "pre-wrap", fontFamily: "inherit" }}>
+                  {selectedJob.description ? (
+                    selectedJob.description
+                  ) : selectedJob.cover_letter ? (
+                    selectedJob.cover_letter
+                  ) : (
+                    <Button
+                      color="info"
+                      type="button"
+                      onClick={() => handleGenerateCoverLetter(selectedJob.id)}
+                      disabled={!!loadingScores[selectedJob.id]}
+                    >
+                      {loadingCoverLetter[selectedJob.id] ? (
+                        <span className="fa fa-spinner fa-spin" />
+                      ) : (
+                        "Generate Cover Letter"
+                      )}
+                    </Button>
+                  )}
+                </pre>
+              </ModalBody>
+              <ModalFooter>
+                <Button
+                  color="secondary"
+                  type="button"
+                  onClick={() => setJobDetailModalOpen(!jobDetailModalOpen)}
+                >
+                  Close
+                </Button>
+              </ModalFooter>
+            </>
+          ) : (
+            "No job selected"
+          )}
         </Modal>
         <Modal
           toggle={() => setJobAddModalOpen(!jobAddModalOpen)}
