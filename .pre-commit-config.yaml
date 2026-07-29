@@ -1,0 +1,36 @@
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.6.0
+    hooks:
+      - id: ruff
+        exclude: |
+          (?x)^(
+            .*/migrations/.*|
+          )$
+      - id: ruff-format
+        exclude: |
+          (?x)^(
+            .*/migrations/.*|
+          )$
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: check-added-large-files
+      - id: trailing-whitespace
+        exclude: |
+          (?x)^(
+            .*/migrations/.*|
+          )$
+      - id: end-of-file-fixer
+        exclude: |
+          (?x)^(
+            .*/migrations/.*|
+          )$
+      - id: check-yaml
+      - id: check-merge-conflict
+      - id: debug-statements
+        exclude: |
+          (?x)^(
+            .*/migrations/.*|
+          )$
