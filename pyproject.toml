@@ -1,0 +1,19 @@
+[project]
+name = "JobSmartAI"
+version = "0.1.0"
+description = "AI-Powered Resume Parser & Job Finder"
+requires-python = ">=3.12"
+dependencies = [
+    "pre-commit==4.6.0",
+    "pytest==9.0.3",
+    "ruff==0.15.15",
+    "django-cors-headers",
+    "requests",
+    "beautifulsoup4",
+    "pandas",
+    "streamlit_option_menu",
+    "PyMuPDF",
+    "drf-spectacular",
+    "djangorestframework",
+    "streamlit"
+]
