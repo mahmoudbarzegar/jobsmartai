@@ -17,6 +17,9 @@ select = [
     "D",   # pydocstyle (docstring rules)
     "N",   # pep8-naming (naming conventions)
     "DJ",  # flake8-django rules
+    "B",   # flake8-bugbear rules
+    "UP",  # flake8-unused-arguments rules
+    "S",   # flake8-bandit rules
 ]
 
 ignore = [
