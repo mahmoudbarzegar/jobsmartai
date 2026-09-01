@@ -11,7 +11,22 @@ class BaseModel(models.Model):  # noqa: DJ008
 
 class ResumeModel(BaseModel):
     file = models.FileField(upload_to="resumes/")
-    resume_info = models.JSONField(default=dict)
+
+    # Promoted — you'll filter/sort/search on these
+    full_name = models.CharField(max_length=255)
+    email = models.EmailField(default="", blank=True)
+    phone = models.CharField(max_length=32, default="", blank=True)
+    latest_job_title = models.CharField(max_length=255)
+    company = models.CharField(max_length=255)
+    years_experience = models.FloatField()
+    skills = models.JSONField(default=list)  # still a list, but indexable-ish via contains lookups
+    keywords = models.JSONField(default=list)
+
+    # Kept as blob — free text, rarely queried directly
+    education_summary = models.TextField()
+
+    # Optional: keep the full raw LLM output too, as an audit trail
+    resume_info_raw = models.JSONField(default=dict)
 
     def __str__(self):
         return self.file.name
