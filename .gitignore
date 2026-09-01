@@ -9,3 +9,5 @@
 /react-frontend/build
 /react-frontend/.eslintcache
 **/__pycache__/**
+__pycache__/
+*.pyc
