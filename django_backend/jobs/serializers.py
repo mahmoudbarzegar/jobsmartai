@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import *
+from .models import JobModel, ResumeModel
 
 
 class JobSerializer(serializers.ModelSerializer):
@@ -8,13 +8,25 @@ class JobSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = JobModel
-        fields = ['id', 'title', 'description', 'link', 'resume_url', 'score', 'score_description', 'created_at',
-                  'updated_at', 'cover_letter']
-        read_only_fields = ['created_at', 'updated_at']
+        fields = [
+            "id",
+            "title",
+            "description",
+            "link",
+            "resume_url",
+            "score",
+            "score_description",
+            "created_at",
+            "updated_at",
+            "cover_letter",
+        ]
+        read_only_fields = ["created_at", "updated_at"]
 
     def get_resume_url(self, obj):
         if obj.resume and obj.resume.file:  # assuming Resume has 'file' attribute
-            request = self.context.get('request')
+            request = self.context.get("request")
+            if request is None:
+                return obj.resume.file.url  # fallback: relative URL instead of absolute
             return request.build_absolute_uri(obj.resume.file.url)
         return None
 
@@ -22,5 +34,33 @@ class JobSerializer(serializers.ModelSerializer):
 class ResumeSerializer(serializers.ModelSerializer):
     class Meta:
         model = ResumeModel
-        fields = ['id', 'file', 'resume_info', 'created_at', 'updated_at']
-        read_only_fields = ['created_at', 'updated_at']
+        fields = [
+            "id",
+            "full_name",
+            "email",
+            "phone",
+            "latest_job_title",
+            "company",
+            "years_experience",
+            "skills",
+            "keywords",
+            "file",
+            "education_summary",
+            "resume_info_raw",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = [
+            "full_name",
+            "email",
+            "phone",
+            "latest_job_title",
+            "company",
+            "years_experience",
+            "skills",
+            "keywords",
+            "education_summary",
+            "resume_info_raw",
+            "created_at",
+            "updated_at",
+        ]
