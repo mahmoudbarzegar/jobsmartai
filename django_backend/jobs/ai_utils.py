@@ -1,27 +1,18 @@
-import requests
 import json
 import re
+from typing import Any
+
+import requests
+
+from .schemas import ResumeInfo
 
 
 def analyze_resume_with_ollama(resume_text):
     prompt = f"""
-    You are an HR assistant. Please extract the following from this resume:
-
-    1. Full name
-    2. Contact info (email, phone)
-    3. Skills (as a list)
-    4. Latest job title and company
-    5. Total years of experience
-    6. Education summary
-    7. List of keywords
+    You are an HR assistant. Extract the requested information from this resume.
 
     Resume:
     {resume_text}
-    
-    Please return a valid JSON object only.
-    Do not include Markdown (like ```), no explanations, and no trailing commas.
-    Only a pure JSON object with these fields:
-    full_name, email, phone, skills (as list), latest_job_title, company, years_experience, education_summary, keywords (as list)
     """
 
     response = requests.post(
@@ -29,17 +20,20 @@ def analyze_resume_with_ollama(resume_text):
         json={
             "model": "mistral",
             "prompt": prompt,
-            "stream": False
-        }
+            "stream": False,
+            "format": ResumeInfo.model_json_schema(),  # <-- this is the enforcement
+        },
+        timeout=300,
     )
 
     if response.status_code == 200:
-        return parse_ollama_json_response(response.json()["response"])
+        raw_json = response.json()["response"]
+        return ResumeInfo.model_validate_json(raw_json)  # parses AND validates
     else:
         return "Error: Could not process resume"
 
 
-def parse_ollama_json_response(response_text: any) -> dict:
+def parse_ollama_json_response(response_text: Any) -> Any:
     try:
         result_text = ""
         if hasattr(response_text, "iter_lines"):
@@ -81,33 +75,30 @@ def parse_ollama_json_response(response_text: any) -> dict:
 def calculate_resume_job_score(resume_text: str, job_description: str):
     prompt = f"""
         You are an AI HR assistant. Your task is to evaluate how well a resume matches a job posting.
-    
-        Return a compatibility score between 0 and 100 based on how closely the candidate's resume matches the job description. 
+
+        Return a compatibility score between 0 and 100 based on how closely the candidate's resume matches the job
+        description.
+
         The score should consider experience, skills, and job title relevance.
-    
+
         Return ONLY the following JSON:
         {{
           "score": <integer from 0 to 100>,
           "reason": "<brief explanation why this score was given>"
         }}
-    
+
         Resume:
         \"\"\"
         {resume_text}
         \"\"\"
-    
+
         Job Description:
         \"\"\"
         {job_description}
         \"\"\"
     """
     response = requests.post(
-        "http://127.0.0.1:11434/api/generate",
-        json={
-            "model": "mistral",
-            "prompt": prompt,
-            "stream": False
-        }
+        "http://127.0.0.1:11434/api/generate", json={"model": "mistral", "prompt": prompt, "stream": False}, timeout=300
     )
 
     if response.status_code == 200:
@@ -118,7 +109,7 @@ def calculate_resume_job_score(resume_text: str, job_description: str):
 
 def generate_cover_letter(resume_text: str, job_description: str) -> str | dict:
     prompt = f"""
-       You are a professional career assistant. Write a concise and tailored cover letter 
+       You are a professional career assistant. Write a concise and tailored cover letter
        for the following job, using the candidate's resume details.
 
        Candidate Resume:
@@ -135,12 +126,7 @@ def generate_cover_letter(resume_text: str, job_description: str) -> str | dict:
        """
 
     response = requests.post(
-        "http://127.0.0.1:11434/api/generate",
-        json={
-            "model": "mistral",
-            "prompt": prompt,
-            "stream": False
-        }
+        "http://127.0.0.1:11434/api/generate", json={"model": "mistral", "prompt": prompt, "stream": False}, timeout=300
     )
 
     if response.status_code == 200:
@@ -149,7 +135,7 @@ def generate_cover_letter(resume_text: str, job_description: str) -> str | dict:
         return "Error: Could not this process"
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     print("Analyzing resume with Ollama...")
     print(analyze_resume_with_ollama(resume_text="ai engineer"))
     print("Finish Analyzing resume with Ollama...")
