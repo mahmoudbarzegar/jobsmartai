@@ -15,5 +15,6 @@ dependencies = [
     "PyMuPDF",
     "drf-spectacular",
     "djangorestframework",
-    "streamlit"
+    "streamlit",
+    "pydantic==2.13.5",
 ]
