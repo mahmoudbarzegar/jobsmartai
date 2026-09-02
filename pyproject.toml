@@ -17,4 +17,5 @@ dependencies = [
     "djangorestframework",
     "streamlit",
     "pydantic==2.13.5",
+    "djangorestframework-stubs>=3.18.1",
 ]
