@@ -1,7 +1,6 @@
 import time
 
 import streamlit as st
-
 from api import call_create_resumes_api, call_list_resumes_api, call_search_job_api
 
 
@@ -18,9 +17,7 @@ def add_resume():
         else:
             st.write("No file uploaded.")
 
-        files = {
-            'file': (uploaded_file.name, uploaded_file, uploaded_file.type)
-        }
+        files = {"file": (uploaded_file.name, uploaded_file, uploaded_file.type)}
         with st.spinner("Analyzing resume..."):
             result = call_create_resumes_api(files)
             if result:
@@ -31,7 +28,7 @@ def add_resume():
 def list_resume():
     st.title("List Resumes")
     result = call_list_resumes_api()
-    data = result['result']['data']
+    data = result["result"]["data"]
 
     for i, row in enumerate(data):
         cols = st.columns([4, 1, 1])
@@ -43,9 +40,9 @@ def list_resume():
             st.write("### Jobs")
             with st.spinner("Loading jobs..."):
                 time.sleep(3)  # Simulate slow data loading
-                result = call_search_job_api(resume_id=row['id'])
-                jobs = result['result']['jobs']
-                for index, item in enumerate(jobs):
+                result = call_search_job_api(resume_id=row["id"])
+                jobs = result["result"]["jobs"]
+                for _, item in enumerate(jobs):
                     cols = st.columns([2, 5])
                     cols[0].write(item["title"])
                     cols[1].write(item["link"])

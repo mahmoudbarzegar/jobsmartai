@@ -1,12 +1,21 @@
 import time
+from typing import Any
 
-from api import *
+import streamlit as st
+from api import (
+    call_cover_letter_job_api,
+    call_create_jobs_api,
+    call_list_jobs_api,
+    call_list_resumes_api,
+    call_score_job_api,
+    call_search_by_keyword_job_api,
+)
 
 
 def list_job():
     st.title("Jobs Page")
     result = call_list_jobs_api()
-    data = result['result']['data']
+    data = result["result"]["data"]
 
     st.write("### Jobs")
     for i, row in enumerate(data):
@@ -15,7 +24,7 @@ def list_job():
         if cols[1].button("View", key=i):
             st.write(f"**Details for {row['title']}:**")
             st.write(f"Resume URL: {row['resume_url']}")
-            st.html(f"<strong style='font-size:25px'>Job Description:</strong><hr/>")
+            st.html("<strong style='font-size:25px'>Job Description:</strong><hr/>")
             st.markdown(row["description"], unsafe_allow_html=True)
             st.html("<hr/>")
         if row["score"] is None:
@@ -23,10 +32,10 @@ def list_job():
                 st.write(f"**Score for {row['title']}:**")
                 with st.spinner("Loading score for this job..."):
                     time.sleep(3)  # Simulate slow data loading
-                    score_result = call_score_job_api(row['id'])
+                    score_result = call_score_job_api(row["id"])
                     st.html(f"<strong style='font-size:25px'>Score = {score_result['result']['score']}</strong>")
                     st.html(f"<strong style='font-size:25px'>Score Description for {row['title']}:</strong><hr/>")
-                    st.write(score_result['result']['reason'])
+                    st.write(score_result["result"]["reason"])
                     st.html("<hr/>")
         else:
             if cols[2].button(f"Score = {str(row['score'])}", key=f"{row['id']}-view_score"):
@@ -39,20 +48,20 @@ def list_job():
                 st.write(f"**Creating a cover letter for {row['title']}:**")
                 with st.spinner("Generating cover letter..."):
                     time.sleep(3)  # Simulate slow data loading
-                    cover_letter_result = call_cover_letter_job_api(row['id'])
+                    cover_letter_result = call_cover_letter_job_api(row["id"])
                     st.html("<hr/>")
-                    st.markdown(cover_letter_result['result'], unsafe_allow_html=True)
+                    st.markdown(cover_letter_result["result"], unsafe_allow_html=True)
                     st.html("<hr/>")
         else:
-            if cols[3].button(f"CL View", key=f"{row['id']}-view_cover_letter"):
+            if cols[3].button("CL View", key=f"{row['id']}-view_cover_letter"):
                 st.html("<hr/>")
                 st.markdown(row["cover_letter"], unsafe_allow_html=True)
                 st.html("<hr/>")
 
 
 def add_job():
-    result = call_list_resumes_api()
-    data = result['result']['data']
+    result: Any = call_list_resumes_api()
+    data = result["result"]["data"]
     options_list = [row["file"] for row in data]
     with st.form(key="job_form"):
         selected_option = st.selectbox("Select an item", options_list)
@@ -63,12 +72,13 @@ def add_job():
 
         if submit_button:
             with st.spinner("Store job and get score..."):
-                result = call_create_jobs_api({
-                    'resume_id': selected_id,
-                    'title': title,
-                    'description': description,
-
-                })
+                result = call_create_jobs_api(
+                    {
+                        "resume_id": selected_id,
+                        "title": title,
+                        "description": description,
+                    }
+                )
                 if result:
                     st.success("Create Jobs API called successfully!")
                     st.json(result)
@@ -87,9 +97,9 @@ def search_job():
 
             st.write("Skill Keyword:", keyword)
             with st.spinner("Search jobs..."):
-                result = call_search_by_keyword_job_api(skill=keyword)
-                jobs = result['result']['jobs']
-                for index, item in enumerate(jobs):
+                result: Any = call_search_by_keyword_job_api(skill=keyword)
+                jobs = result["result"]["jobs"]
+                for _, item in enumerate(jobs):
                     cols = st.columns([2, 5])
                     cols[0].write(item["title"])
                     cols[1].write(item["link"])
