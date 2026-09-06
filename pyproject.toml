@@ -18,4 +18,5 @@ dependencies = [
     "streamlit",
     "pydantic==2.13.5",
     "djangorestframework-stubs>=3.18.1",
+    "django-environ==0.14.0",
 ]
