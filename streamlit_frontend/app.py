@@ -1,13 +1,11 @@
 import streamlit as st
-
-from streamlit_option_menu import option_menu
-
+from job import add_job, list_job, search_job
 from resume import add_resume, list_resume
-from job import list_job, add_job, search_job
+from streamlit_option_menu import option_menu
 
 
 def load_style(file_path):
-    with open(file_path, "r") as f:
+    with open(file_path) as f:
         css = f.read()
     st.markdown(f"<style>{css}</style>", unsafe_allow_html=True)
 
@@ -30,7 +28,7 @@ with st.sidebar:
         icons=["file-earmark-person", "list-columns-reverse", "plus-square", "list-columns-reverse", "search"],
         menu_icon="cast",
         default_index=0,
-        styles=styles
+        styles=styles,
     )
 
 if selected == "Add Resume" or selected is None:

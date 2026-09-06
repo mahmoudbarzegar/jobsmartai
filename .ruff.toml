@@ -6,7 +6,10 @@ exclude = [
     "**/migrations/**",
     ".venv",
     "__pycache__",
+    "uv.lock",
+    "demo.png"
 ]
+force-exclude = true
 
 [lint]
 select = [
