@@ -11,3 +11,4 @@ class ResumeInfo(BaseModel):
     years_experience: float
     education_summary: str
     keywords: list[str]
+    experience_summary: str
