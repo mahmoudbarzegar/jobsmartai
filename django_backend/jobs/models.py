@@ -24,6 +24,7 @@ class ResumeModel(BaseModel):
 
     # Kept as blob — free text, rarely queried directly
     education_summary = models.TextField()
+    experience_summary = models.TextField()
 
     # Optional: keep the full raw LLM output too, as an audit trail
     resume_info_raw = models.JSONField(default=dict)
@@ -41,9 +42,11 @@ class ResumeModel(BaseModel):
 
 class JobModel(BaseModel):
     title = models.CharField(max_length=100, unique=True)
-    description = models.TextField()
     link = models.URLField(max_length=500, default="", blank=True)
-    skill = models.JSONField(default=list, blank=True)
+    description = models.TextField()
+    requirements = models.TextField(blank=True)
+    responsibilities = models.TextField(blank=True)
+    skills = models.JSONField(default=list, blank=True)
 
     def __str__(self):
         return self.title
