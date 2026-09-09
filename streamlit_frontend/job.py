@@ -62,12 +62,19 @@ def list_job():
 def add_job():
     result: Any = call_list_resumes_api()
     data = result["result"]["data"]
+    if not data:
+        st.warning("Please upload a resume first.")
+        return
+
     options_list = [row["file"] for row in data]
     with st.form(key="job_form"):
         selected_option = st.selectbox("Select an item", options_list)
         selected_id = next(row["id"] for row in data if row["file"] == selected_option)
         title = st.text_input("Enter job title:")
+        link = st.text_input("Enter job link:")
         description = st.text_area("Enter job description:", height=375)
+        requirements = st.text_area("Enter job requirements:", height=375)
+        responsibilities = st.text_area("Enter job responsibilities:", height=375)
         submit_button = st.form_submit_button(label="Submit")
 
         if submit_button:
@@ -77,6 +84,9 @@ def add_job():
                         "resume_id": selected_id,
                         "title": title,
                         "description": description,
+                        "link": link,
+                        "requirements": requirements,
+                        "responsibilities": responsibilities,
                     }
                 )
                 if result:
