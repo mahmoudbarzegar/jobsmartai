@@ -7,7 +7,7 @@ API_URL = "http://localhost:8000/api"
 def call_create_resumes_api(files: dict):
     url = f"{API_URL}/resumes"
     try:
-        response = requests.post(url, files=files, timeout=90)
+        response = requests.post(url, files=files, timeout=300)
         response.raise_for_status()
         return response.json()
     except requests.RequestException as e:
