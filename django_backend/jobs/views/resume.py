@@ -3,8 +3,9 @@ from rest_framework import status, viewsets
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
 
-from ..ai_utils import analyze_resume_with_ollama
+from ..ai_utils import analyze_subject_with_ollama
 from ..models import ResumeModel
+from ..schemas import ResumeInfo
 from ..serializers import ResumeSerializer
 from ..utils import extract_text_from_pdf
 
@@ -36,7 +37,9 @@ class ResumeViewSet(viewsets.ModelViewSet):
                 )
 
             resume_text = extract_text_from_pdf(request.data["file"])
-            analyze_resume_text = analyze_resume_with_ollama(resume_text)
+            analyze_resume_text = analyze_subject_with_ollama(
+                subject_text=resume_text, subject_type="resume", subject_schema=ResumeInfo
+            )
             data = analyze_resume_text.model_dump()
 
             serializer.save(**data, resume_info_raw=data)
