@@ -12,3 +12,9 @@ class ResumeInfo(BaseModel):
     education_summary: str
     keywords: list[str]
     experience_summary: str
+
+
+class JobInfo(BaseModel):
+    requirements: str | None = None
+    skills: list[str]
+    responsibilities: str

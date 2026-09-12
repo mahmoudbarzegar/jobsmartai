@@ -42,7 +42,7 @@ class ResumeModel(BaseModel):
 
 class JobModel(BaseModel):
     title = models.CharField(max_length=100, unique=True)
-    link = models.URLField(max_length=500, default="", blank=True)
+    link = models.URLField(max_length=500)
     description = models.TextField()
     requirements = models.TextField(blank=True)
     responsibilities = models.TextField(blank=True)
@@ -52,20 +52,21 @@ class JobModel(BaseModel):
         return self.title
 
 
-class Status(models.TextChoices):
-    APPLIED = "applied", "Applied"
-    REVIEWED = "reviewed", "Reviewed"
-    REJECTED = "rejected", "Rejected"
-    HIRED = "hired", "Hired"
-
-
 class ApplicationModel(BaseModel):
+    STATUS_CHOICES = [
+        ("applied", "Applied"),
+        ("reviewed", "Reviewed"),
+        ("rejected", "Rejected"),
+        ("hired", "Hired"),
+        ("checking", "Checking"),
+    ]
+
     resume = models.ForeignKey(ResumeModel, on_delete=models.CASCADE)
     job = models.ForeignKey(JobModel, on_delete=models.CASCADE)
     score = models.SmallIntegerField(null=True, blank=True)
     score_description = models.TextField(default="", blank=True)
     cover_letter = models.TextField(default="", blank=True)
-    status = models.CharField(max_length=20, choices=Status.choices, default=Status.APPLIED)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="checking")
 
     class Meta:
         constraints = [models.UniqueConstraint(fields=["resume", "job"], name="unique_resume_job_application")]

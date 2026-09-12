@@ -5,8 +5,9 @@ from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from ..ai_utils import calculate_resume_job_score, generate_cover_letter
+from ..ai_utils import analyze_subject_with_ollama, calculate_resume_job_score, generate_cover_letter
 from ..models import JobModel, ResumeModel
+from ..schemas import JobInfo
 from ..serializers import JobSerializer
 from ..utils import extract_text_from_pdf, search_job_from_relocate_me, search_jobs_from_remoteok
 
@@ -20,16 +21,24 @@ class JobViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         try:
-            resume_instance = ResumeModel.objects.get(id=request.data.get("resume_id"))
-            serializer = self.get_serializer(data=request.data)
+            job_data = request.data
+            serializer = self.get_serializer(data=job_data)
             if not serializer.is_valid():
                 return Response(
                     {"status": "error", "errorMessage": "Request is not valid", "errors": serializer.errors},
                     status=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 )
 
-            serializer.save(resume=resume_instance)
+            analyze_job_text = analyze_subject_with_ollama(
+                subject_text=job_data["description"], subject_type="job", subject_schema=JobInfo
+            )
+            data = analyze_job_text.model_dump()
+
+            serializer.save(**data, title=job_data["title"], link=job_data["link"], description=job_data["description"])
             return Response({"status": "success", "result": serializer.data}, status=status.HTTP_201_CREATED)
+
+        except RuntimeError as e:
+            return Response({"status": "error", "errorMessage": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         except Exception as e:
             return Response({"status": "error", "errorMessage": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 

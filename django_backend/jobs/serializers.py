@@ -4,8 +4,6 @@ from .models import JobModel, ResumeModel
 
 
 class JobSerializer(serializers.ModelSerializer):
-    resume_url = serializers.SerializerMethodField()
-
     class Meta:
         model = JobModel
         fields = [
@@ -13,22 +11,13 @@ class JobSerializer(serializers.ModelSerializer):
             "title",
             "description",
             "link",
-            "resume_url",
-            "score",
-            "score_description",
+            "requirements",
+            "responsibilities",
+            "skills",
             "created_at",
             "updated_at",
-            "cover_letter",
         ]
-        read_only_fields = ["created_at", "updated_at"]
-
-    def get_resume_url(self, obj):
-        if obj.resume and obj.resume.file:  # assuming Resume has 'file' attribute
-            request = self.context.get("request")
-            if request is None:
-                return obj.resume.file.url  # fallback: relative URL instead of absolute
-            return request.build_absolute_uri(obj.resume.file.url)
-        return None
+        read_only_fields = ["created_at", "updated_at", "requirements", "responsibilities", "skills"]
 
 
 class ResumeSerializer(serializers.ModelSerializer):
