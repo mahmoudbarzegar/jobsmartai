@@ -3,16 +3,15 @@ import re
 from typing import Any
 
 import requests
+from pydantic import BaseModel
 
-from .schemas import ResumeInfo
 
-
-def analyze_resume_with_ollama(resume_text):
+def analyze_subject_with_ollama[T: BaseModel](subject_text: str, subject_type: str, subject_schema: type[T]) -> Any:
     prompt = f"""
-    You are an HR assistant. Extract the requested information from this resume.
+    You are an HR assistant. Extract the requested information from this {subject_type}.
 
-    Resume:
-    {resume_text}
+    {subject_type.capitalize()}:
+    {subject_text}
     """
 
     response = requests.post(
@@ -21,16 +20,16 @@ def analyze_resume_with_ollama(resume_text):
             "model": "mistral",
             "prompt": prompt,
             "stream": False,
-            "format": ResumeInfo.model_json_schema(),  # <-- this is the enforcement
+            "format": subject_schema.model_json_schema(),  # <-- this is the enforcement
         },
         timeout=300,
     )
 
     if response.status_code == 200:
         raw_json = response.json()["response"]
-        return ResumeInfo.model_validate_json(raw_json)  # parses AND validates
-    else:
-        return "Error: Could not process resume"
+        return subject_schema.model_validate_json(raw_json)  # parses AND validates
+
+    raise RuntimeError("Could not process subject")
 
 
 def parse_ollama_json_response(response_text: Any) -> Any:
@@ -135,7 +134,7 @@ def generate_cover_letter(resume_text: str, job_description: str) -> str | dict:
         return "Error: Could not this process"
 
 
-if __name__ == "__main__":
-    print("Analyzing resume with Ollama...")
-    print(analyze_resume_with_ollama(resume_text="ai engineer"))
-    print("Finish Analyzing resume with Ollama...")
+# if __name__ == "__main__":
+#     print("Analyzing resume with Ollama...")
+#     print(analyze_resume_with_ollama(resume_text="ai engineer"))
+#     print("Finish Analyzing resume with Ollama...")
