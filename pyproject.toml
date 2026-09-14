@@ -19,4 +19,14 @@ dependencies = [
     "pydantic==2.13.5",
     "djangorestframework-stubs>=3.18.1",
     "django-environ==0.14.0",
+    "sentence-transformers",
+    "scikit-learn",
 ]
+
+[tool.uv.sources]
+torch = { index = "pytorch-cpu" }
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
