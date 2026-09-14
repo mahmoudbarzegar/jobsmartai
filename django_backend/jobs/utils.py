@@ -1,6 +1,12 @@
+from typing import Any
+
 import fitz
 import requests
 from bs4 import BeautifulSoup
+
+from django_backend.jobs.models import JobModel, ResumeModel
+
+from .ai_utils import calculate_similarity_score
 
 
 def search_jobs_from_remoteok(skills: list):
@@ -63,3 +69,36 @@ def extract_text_from_pdf(pdf_file):
         if isinstance(result, str):
             text += result
     return text
+
+
+def get_similarity_score(resume_id: int, job_id: int) -> tuple[Any, Any]:
+    total_score = 0
+    breakdown = {}
+
+    resume = ResumeModel.objects.get(pk=resume_id)
+    job = JobModel.objects.get(pk=job_id)
+
+    field_pairs = [
+        ("title", "latest_job_title", 0.15),
+        ("skills", "skills", 0.40),
+        ("requirements", ["education_summary", "years_experience"], 0.20),
+        ("responsibilities", "experience_summary", 0.20),
+        ("description", "keywords", 0.05),
+    ]
+
+    for job_field, resume_field, weight in field_pairs:
+        job_value = getattr(job, job_field)
+
+        if isinstance(resume_field, list):
+            resume_value = " ".join(str(getattr(resume, f)) for f in resume_field)
+        else:
+            resume_value = getattr(resume, resume_field)
+
+        if isinstance(job_value, list):
+            job_value = ", ".join(job_value)
+
+        score = calculate_similarity_score(resume_value, job_value)
+        breakdown[job_field] = score
+        total_score += score * weight
+
+    return total_score, breakdown
