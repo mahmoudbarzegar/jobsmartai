@@ -5,7 +5,7 @@ from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from ..ai_utils import analyze_subject_with_ollama, calculate_resume_job_score, generate_cover_letter
+from ..ai_utils import analyze_subject_with_ollama, generate_cover_letter
 from ..models import JobModel, ResumeModel
 from ..schemas import JobInfo
 from ..serializers import JobSerializer
@@ -126,20 +126,6 @@ class JobViewSet(viewsets.ModelViewSet):
             }
         },
     )
-    @action(detail=False, methods=["get"], url_path="(?P<job_id>[^/.]+)/score")
-    def score(self, request, job_id):
-        try:
-            job = self.model_class.objects.get(id=job_id)
-            resume_text = extract_text_from_pdf(job.resume.file)
-            result = calculate_resume_job_score(resume_text=resume_text, job_description=job.description)
-
-            job.score = result["score"]
-            job.score_description = result["reason"]
-            job.save()
-            return Response({"status": "success", "result": result}, status=status.HTTP_200_OK)
-        except Exception:
-            return Response({"status": "success", "result": {"score": 0, "reason": ""}}, status=status.HTTP_200_OK)
-
     @action(detail=False, methods=["get"], url_path="(?P<job_id>[^/.]+)/cover-letter")
     def cover_letter(self, request, job_id):
         try:

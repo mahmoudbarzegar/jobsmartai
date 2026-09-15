@@ -63,7 +63,7 @@ class ApplicationModel(BaseModel):
 
     resume = models.ForeignKey(ResumeModel, on_delete=models.CASCADE)
     job = models.ForeignKey(JobModel, on_delete=models.CASCADE)
-    score = models.SmallIntegerField(null=True, blank=True)
+    score = models.FloatField(null=True, blank=True)
     score_description = models.TextField(default="", blank=True)
     cover_letter = models.TextField(default="", blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="checking")

@@ -18,3 +18,7 @@ class JobInfo(BaseModel):
     requirements: str | None = None
     skills: list[str]
     responsibilities: str
+
+
+class ScoreExplanation(BaseModel):
+    reason: str

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import JobModel, ResumeModel
+from .models import ApplicationModel, JobModel, ResumeModel
 
 
 class JobSerializer(serializers.ModelSerializer):
@@ -55,3 +55,23 @@ class ResumeSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         ]
+
+
+class ApplicationSerializer(serializers.ModelSerializer):
+    job_id = serializers.PrimaryKeyRelatedField(source="job", queryset=JobModel.objects.all())
+    resume_id = serializers.PrimaryKeyRelatedField(source="resume", queryset=ResumeModel.objects.all())
+
+    class Meta:
+        model = ApplicationModel
+        fields = [
+            "id",
+            "job_id",
+            "resume_id",
+            "score",
+            "score_description",
+            "cover_letter",
+            "status",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["created_at", "updated_at", "score", "score_description", "cover_letter", "status"]
