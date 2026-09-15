@@ -1,12 +1,9 @@
-from typing import Any
-
 import fitz
 import requests
 from bs4 import BeautifulSoup
 
-from django_backend.jobs.models import JobModel, ResumeModel
-
 from .ai_utils import calculate_similarity_score
+from .models import JobModel, ResumeModel
 
 
 def search_jobs_from_remoteok(skills: list):
@@ -71,12 +68,9 @@ def extract_text_from_pdf(pdf_file):
     return text
 
 
-def get_similarity_score(resume_id: int, job_id: int) -> tuple[Any, Any]:
+def get_similarity_score(resume: ResumeModel, job: JobModel) -> tuple[float, dict]:
     total_score = 0
     breakdown = {}
-
-    resume = ResumeModel.objects.get(pk=resume_id)
-    job = JobModel.objects.get(pk=job_id)
 
     field_pairs = [
         ("title", "latest_job_title", 0.15),
@@ -94,10 +88,14 @@ def get_similarity_score(resume_id: int, job_id: int) -> tuple[Any, Any]:
         else:
             resume_value = getattr(resume, resume_field)
 
-        if isinstance(job_value, list):
-            job_value = ", ".join(job_value)
+        # Normalize AFTER resolving the value, not based on the field name
+        if isinstance(resume_value, list):
+            resume_value = ", ".join(str(v) for v in resume_value)
 
-        score = calculate_similarity_score(resume_value, job_value)
+        if isinstance(job_value, list):
+            job_value = ", ".join(str(v) for v in job_value)
+
+        score = calculate_similarity_score(str(resume_value), str(job_value))
         breakdown[job_field] = score
         total_score += score * weight
 
