@@ -1,4 +1,5 @@
+from .application_view import ApplicationViewSet
 from .job import JobViewSet
 from .resume import ResumeViewSet
 
-__all__ = ["ResumeViewSet", "JobViewSet"]
+__all__ = ["ResumeViewSet", "JobViewSet", "ApplicationViewSet"]
