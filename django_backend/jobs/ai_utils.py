@@ -4,6 +4,12 @@ from typing import Any
 
 import requests
 from pydantic import BaseModel
+from sentence_transformers import SentenceTransformer
+from sklearn.metrics.pairwise import cosine_similarity
+
+from .schemas import ScoreExplanation
+
+_model = SentenceTransformer(model_name_or_path="all-MiniLM-L6-v2", device="cpu")
 
 
 def analyze_subject_with_ollama[T: BaseModel](subject_text: str, subject_type: str, subject_schema: type[T]) -> Any:
@@ -71,18 +77,15 @@ def parse_ollama_json_response(response_text: Any) -> Any:
         return {"error": f"Failed to parse JSON: {str(e)}"}
 
 
-def calculate_resume_job_score(resume_text: str, job_description: str):
+def calculate_resume_job_score_description(resume_text: str, job_description: str, score: float):
     prompt = f"""
-        You are an AI HR assistant. Your task is to evaluate how well a resume matches a job posting.
+        The calculated compatibility score is {score}.
 
-        Return a compatibility score between 0 and 100 based on how closely the candidate's resume matches the job
-        description.
-
-        The score should consider experience, skills, and job title relevance.
+        Based on the resume and job description,
+        provide a brief explanation for this score.
 
         Return ONLY the following JSON:
         {{
-          "score": <integer from 0 to 100>,
           "reason": "<brief explanation why this score was given>"
         }}
 
@@ -95,15 +98,26 @@ def calculate_resume_job_score(resume_text: str, job_description: str):
         \"\"\"
         {job_description}
         \"\"\"
+
+        Score: {score}
     """
+
     response = requests.post(
-        "http://127.0.0.1:11434/api/generate", json={"model": "mistral", "prompt": prompt, "stream": False}, timeout=300
+        "http://127.0.0.1:11434/api/generate",
+        json={
+            "model": "mistral",
+            "prompt": prompt,
+            "stream": False,
+            "format": ScoreExplanation.model_json_schema(),
+        },
+        timeout=600,
     )
 
     if response.status_code == 200:
-        return parse_ollama_json_response(response.json()["response"])
+        raw_json = response.json()["response"]
+        return ScoreExplanation.model_validate_json(raw_json)
     else:
-        return "Error: Could not this process"
+        return ScoreExplanation(reason="Error: Could not process this request")
 
 
 def generate_cover_letter(resume_text: str, job_description: str) -> str | dict:
@@ -132,6 +146,12 @@ def generate_cover_letter(resume_text: str, job_description: str) -> str | dict:
         return parse_ollama_json_response(response)
     else:
         return "Error: Could not this process"
+
+
+def calculate_similarity_score(resume_value: str, job_value: str) -> float:
+    embeddings = _model.encode([resume_value, job_value])
+    similarity = cosine_similarity([embeddings[0]], [embeddings[1]])
+    return float(similarity[0][0])
 
 
 # if __name__ == "__main__":
