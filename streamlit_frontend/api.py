@@ -92,3 +92,14 @@ def call_cover_letter_job_api(job_id: int):
     except requests.RequestException as e:
         st.error(f"API request failed: {e}")
         return None
+
+
+def call_calculate_score_application_api(application_data: dict):
+    url = f"{API_URL}/applications"
+    try:
+        response = requests.post(url, json=application_data, timeout=300)
+        response.raise_for_status()
+        return response.json()
+    except requests.RequestException as e:
+        st.error(f"API request failed: {e}")
+        return None
