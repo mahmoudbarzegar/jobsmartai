@@ -13,7 +13,7 @@ from api import (
 def list_job():
     st.title("Jobs Page")
     result = call_list_jobs_api()
-    jobs = result["result"]["data"]
+    jobs = result["result"]
 
     st.write("### Jobs")
     for _, job in enumerate(jobs):
@@ -32,7 +32,7 @@ def list_job():
 
         if st.session_state.get(f"show_form_{job['id']}"):
             with st.form(key=f"apply_form_{job['id']}"):
-                resumes = call_list_resumes_api()["result"]["data"]
+                resumes = call_list_resumes_api()["result"]
                 resume_options = {r["file"]: r["id"] for r in resumes}
 
                 selected_resume_name = st.selectbox(
@@ -49,10 +49,10 @@ def list_job():
                     with st.spinner("Processing..."):
                         response = call_calculate_score_application_api({"resume_id": resume_id, "job_id": job["id"]})[
                             "result"
-                        ]["data"]
+                        ]
 
                     st.success("Done!")
-                    st.write(f"**Match score:** {response['score']}")
+                    st.write(f"**Match score:** {round(response['score'] * 100, 1)}")
                     st.write(f"**Score Description:** {response['score_description']}")
                     st.write(f"**Status:** {response['status']}")
 

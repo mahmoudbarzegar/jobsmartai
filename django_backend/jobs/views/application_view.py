@@ -44,7 +44,7 @@ class ApplicationViewSet(viewsets.ModelViewSet):
                 resume=resume,
                 job=job,
                 score=score,
-                score_description=score_description,
+                score_description=score_description.reason,
             )
 
             return Response({"status": "success", "result": serializer.data}, status=status.HTTP_201_CREATED)
