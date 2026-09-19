@@ -7,7 +7,7 @@ API_URL = "http://localhost:8000/api"
 def call_create_resumes_api(files: dict):
     url = f"{API_URL}/resumes"
     try:
-        response = requests.post(url, files=files, timeout=300)
+        response = requests.post(url, files=files, timeout=600)
         response.raise_for_status()
         return response.json()
     except requests.RequestException as e:
@@ -75,7 +75,7 @@ def call_list_jobs_api():
 def call_create_jobs_api(jobs_data: dict):
     url = f"{API_URL}/jobs"
     try:
-        response = requests.post(url, json=jobs_data, timeout=300)
+        response = requests.post(url, json=jobs_data, timeout=600)
         response.raise_for_status()
         return response.json()
     except requests.RequestException as e:
