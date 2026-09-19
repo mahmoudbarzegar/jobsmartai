@@ -26,7 +26,7 @@ def add_resume():
 def list_resume():
     st.title("List Resumes")
     result = call_list_resumes_api()
-    data = result["result"]["data"]
+    data = result["result"]
 
     for i, row in enumerate(data):
         cols = st.columns([4, 1, 1])
@@ -34,13 +34,3 @@ def list_resume():
         if cols[1].button("View", key=i):
             st.write(f"**Details for {row['file']}:**")
             st.json(row["resume_info_raw"])
-        # if cols[2].button("Search job", key=f"{row['id']}_search_job"):
-        #     st.write("### Jobs")
-        #     with st.spinner("Loading jobs..."):
-        #         time.sleep(3)  # Simulate slow data loading
-        #         result = call_search_job_api(resume_id=row["id"])
-        #         jobs = result["result"]["jobs"]
-        #         for _, item in enumerate(jobs):
-        #             cols = st.columns([2, 5])
-        #             cols[0].write(item["title"])
-        #             cols[1].write(item["link"])
