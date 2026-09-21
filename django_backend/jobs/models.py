@@ -61,8 +61,8 @@ class ApplicationModel(BaseModel):
         ("checking", "Checking"),
     ]
 
-    resume = models.ForeignKey(ResumeModel, on_delete=models.CASCADE)
-    job = models.ForeignKey(JobModel, on_delete=models.CASCADE)
+    resume = models.ForeignKey(ResumeModel, on_delete=models.CASCADE, related_name="resume_applications")
+    job = models.ForeignKey(JobModel, on_delete=models.CASCADE, related_name="job_applications")
     score = models.FloatField(null=True, blank=True)
     score_description = models.TextField(default="", blank=True)
     cover_letter = models.TextField(default="", blank=True)
