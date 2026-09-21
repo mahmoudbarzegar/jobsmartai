@@ -3,7 +3,7 @@ from rest_framework import status, viewsets
 from rest_framework.response import Response
 
 from ..ai_utils import calculate_resume_job_score_description
-from ..models import JobModel, ResumeModel
+from ..models import ApplicationModel, JobModel, ResumeModel
 from ..serializers import ApplicationSerializer
 from ..utils import get_similarity_score
 
@@ -24,6 +24,10 @@ class ApplicationViewSet(viewsets.ModelViewSet):
                     {"status": "error", "errorMessage": "Request is not valid", "errors": serializer.errors},
                     status=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 )
+
+            ApplicationModel.objects.filter(
+                resume_id=application_data["resume_id"], job_id=application_data["job_id"]
+            ).delete()
 
             resume = ResumeModel.objects.get(pk=application_data["resume_id"])
             job = JobModel.objects.get(pk=application_data["job_id"])
