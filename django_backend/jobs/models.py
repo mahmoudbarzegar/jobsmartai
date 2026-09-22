@@ -39,6 +39,12 @@ class ResumeModel(BaseModel):
         # Delete the model instance
         super().delete(*args, **kwargs)
 
+    def get_file_url(self, request=None):
+        if not self.file:
+            return None
+        url = self.file.url
+        return request.build_absolute_uri(url) if request else url
+
 
 class JobModel(BaseModel):
     title = models.CharField(max_length=100, unique=True)
