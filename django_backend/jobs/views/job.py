@@ -1,6 +1,6 @@
 import logging
 
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -16,7 +16,7 @@ from ..utils import extract_text_from_pdf, search_job_from_relocate_me, search_j
 class JobViewSet(viewsets.ModelViewSet):
     http_method_names = ["post", "get"]
     model_class = JobModel
-    queryset = model_class.objects.all()
+    queryset = model_class.objects.prefetch_related("job_applications").all()
     serializer_class = JobSerializer
 
     def create(self, request, *args, **kwargs):
@@ -125,6 +125,9 @@ class JobViewSet(viewsets.ModelViewSet):
                 "required": ["resume_id", "job_id"],
             }
         },
+        parameters=[
+            OpenApiParameter(name="job_id", type=int, location=OpenApiParameter.PATH),
+        ],
     )
     @action(detail=False, methods=["get"], url_path="(?P<job_id>[^/.]+)/cover-letter")
     def cover_letter(self, request, job_id):
