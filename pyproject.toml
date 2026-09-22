@@ -21,6 +21,7 @@ dependencies = [
     "django-environ==0.14.0",
     "sentence-transformers",
     "scikit-learn",
+    "qdrant-client>=1.19.1",
 ]
 
 [tool.uv.sources]
