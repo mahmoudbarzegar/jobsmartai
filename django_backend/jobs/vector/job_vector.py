@@ -1,27 +1,13 @@
-# jobs/vector_store.py
-from qdrant_client import QdrantClient
-from qdrant_client.models import Distance, PointStruct, VectorParams
+from qdrant_client.models import PointStruct
 
 from ..ai_utils import sentence_transformer_model
 from ..models import JobModel
-
-client = QdrantClient(host="localhost", port=6333)
-VECTOR_SIZE = 384
-
-FIELD_NAMES = ["title", "skills", "requirements", "responsibilities", "description"]
+from .clients import qdrant_client
+from .qdrant_collections import ensure_collection
 
 
-# jobs/vector_store.py
-def ensure_job_collection():
-    if not client.collection_exists("jobs"):
-        client.create_collection(
-            collection_name="jobs",
-            vectors_config={name: VectorParams(size=VECTOR_SIZE, distance=Distance.COSINE) for name in FIELD_NAMES},
-        )
-
-
-def store_job_vectors(job: JobModel, model=sentence_transformer_model) -> None:
-    ensure_job_collection()
+def store_job_vectors(job: JobModel) -> None:
+    ensure_collection(collection_name="jobs")
 
     fields_to_embed = {
         "title": job.title,
@@ -33,9 +19,9 @@ def store_job_vectors(job: JobModel, model=sentence_transformer_model) -> None:
         "description": job.description,
     }
 
-    vectors = {name: model.encode(text).tolist() for name, text in fields_to_embed.items()}
+    vectors = {name: sentence_transformer_model.encode(text).tolist() for name, text in fields_to_embed.items()}
 
-    client.upsert(
+    qdrant_client.upsert(
         collection_name="jobs",
         points=[PointStruct(id=job.id, vector=vectors, payload={"job_id": job.id})],
     )
