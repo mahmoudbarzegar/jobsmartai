@@ -9,7 +9,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 
 from .schemas import ScoreExplanation
 
-_model = SentenceTransformer(model_name_or_path="all-MiniLM-L6-v2", device="cpu")
+sentence_transformer_model = SentenceTransformer(model_name_or_path="all-MiniLM-L6-v2", device="cpu")
 
 
 def analyze_subject_with_ollama[T: BaseModel](subject_text: str, subject_type: str, subject_schema: type[T]) -> Any:
@@ -149,7 +149,7 @@ def generate_cover_letter(resume_text: str, job_description: str) -> str | dict:
 
 
 def calculate_similarity_score(resume_value: str, job_value: str) -> float:
-    embeddings = _model.encode([resume_value, job_value])
+    embeddings = sentence_transformer_model.encode([resume_value, job_value])
     similarity = cosine_similarity([embeddings[0]], [embeddings[1]])
     return float(similarity[0][0])
 
