@@ -3,6 +3,7 @@ import requests
 from bs4 import BeautifulSoup
 
 from .ai_utils import calculate_similarity_score
+from .constants import FIELD_WEIGHT_MAP
 from .models import JobModel, ResumeModel
 
 
@@ -72,15 +73,7 @@ def get_similarity_score(resume: ResumeModel, job: JobModel) -> tuple[float, dic
     total_score = 0
     breakdown = {}
 
-    field_pairs = [
-        ("title", "latest_job_title", 0.15),
-        ("skills", "skills", 0.40),
-        ("requirements", ["education_summary", "years_experience"], 0.20),
-        ("responsibilities", "experience_summary", 0.20),
-        ("description", "keywords", 0.05),
-    ]
-
-    for job_field, resume_field, weight in field_pairs:
+    for job_field, resume_field, weight in FIELD_WEIGHT_MAP:
         job_value = getattr(job, job_field)
 
         if isinstance(resume_field, list):
