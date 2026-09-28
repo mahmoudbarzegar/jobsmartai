@@ -103,3 +103,25 @@ def call_calculate_score_application_api(application_data: dict):
     except requests.RequestException as e:
         st.error(f"API request failed: {e}")
         return None
+
+
+def call_find_best_resumes_api(job_id: int):
+    url = f"{API_URL}/find-best-resumes/{job_id}"
+    try:
+        response = requests.get(url, timeout=90)
+        response.raise_for_status()
+        return response.json()
+    except requests.RequestException as e:
+        st.error(f"API request failed: {e}")
+        return None
+
+
+def call_retrieve_job_api(job_id: int):
+    url = f"{API_URL}/jobs/{job_id}"
+    try:
+        response = requests.get(url, timeout=90)
+        response.raise_for_status()
+        return response.json()
+    except requests.RequestException as e:
+        st.error(f"API request failed: {e}")
+        return None
