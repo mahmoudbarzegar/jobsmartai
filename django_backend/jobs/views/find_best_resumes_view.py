@@ -4,10 +4,11 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from ..ai_utils import sentence_transformer_model
+from ..constants import FIELD_WEIGHT_MAP
 from ..models import ApplicationModel, JobModel, ResumeModel
 from ..serializers import ApplicationSerializer
-from ..utils import get_similarity_score
-from ..vector.job_vector import FIELD_NAMES, client, store_job_vectors
+from ..vector.clients import qdrant_client
+from ..vector.job_vector import store_job_vectors
 from ..vector.resume_vector import store_resume_vectors
 
 
@@ -46,10 +47,10 @@ class FindBestResumes(APIView):
 
             field_scores_per_resume = {}
 
-            for field_name in FIELD_NAMES:
+            for field_name in job_fields:
                 job_vector = sentence_transformer_model.encode(job_fields[field_name]).tolist()
 
-                hits = client.query_points(
+                hits = qdrant_client.query_points(
                     collection_name="resumes",
                     query=job_vector,
                     using=field_name,
@@ -66,26 +67,27 @@ class FindBestResumes(APIView):
 
             ranked = []
             for resume in candidate_resumes:
-                total_score, breakdown = get_similarity_score(resume, job)
+                total_score = 0
 
-                ApplicationModel.objects.filter(resume_id=resume.id, job_id=job_id).delete()
+                for field, _, weight in FIELD_WEIGHT_MAP:
+                    total_score += field_scores_per_resume[resume.id][field] * weight
 
                 ranked.append(
                     {
                         "resume_id": resume.id,
                         "resume_link": resume.get_file_url(request),
                         "score": round(total_score * 100, 2),
-                        "breakdown": {k: round(v * 100, 2) for k, v in breakdown.items()},
+                        "breakdown": field_scores_per_resume[resume.id],
                     }
                 )
 
-                ApplicationModel.objects.create(
+                ApplicationModel.objects.update_or_create(
                     resume=resume,
                     job=job,
-                    score=total_score,
+                    defaults={"score": total_score},
                 )
-            ranked.sort(key=lambda r: r["score"], reverse=True)
 
+            ranked.sort(key=lambda r: r["score"], reverse=True)
             return Response({"status": "success", "result": ranked}, status=status.HTTP_201_CREATED)
 
         except Exception as e:
