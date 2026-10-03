@@ -93,3 +93,12 @@ class JobSerializer(serializers.ModelSerializer):
             "skills",
             "job_applications",
         ]
+
+
+class AskAboutMatchRequestSerializer(serializers.Serializer):
+    question = serializers.CharField(default="Why is this job suitable for me?")
+
+
+class AskAboutMatchResponseSerializer(serializers.Serializer):
+    status = serializers.CharField()
+    answer = serializers.CharField()

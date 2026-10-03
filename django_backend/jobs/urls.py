@@ -1,7 +1,7 @@
 from django.urls import path
 from rest_framework.routers import DefaultRouter
 
-from .views import ApplicationViewSet, FindBestResumes, JobViewSet, ResumeViewSet
+from .views import ApplicationViewSet, AskAboutMatchView, FindBestResumes, JobViewSet, ResumeViewSet
 
 router = DefaultRouter(trailing_slash=False)
 router.register("resumes", ResumeViewSet, basename="resumes")
@@ -11,4 +11,5 @@ router.register("applications", ApplicationViewSet, basename="application")
 
 urlpatterns = router.urls + [
     path("find-best-resumes/<int:job_id>", FindBestResumes.as_view()),
+    path("ask-about-match/job-id/<int:job_id>/resume-id/<int:resume_id>", AskAboutMatchView.as_view()),
 ]
