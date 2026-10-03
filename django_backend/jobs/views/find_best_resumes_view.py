@@ -3,12 +3,12 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from ..ai_utils import sentence_transformer_model
 from ..constants import FIELD_WEIGHT_MAP
 from ..models import ApplicationModel, JobModel, ResumeModel
 from ..serializers import ApplicationSerializer
 from ..vector.clients import qdrant_client
 from ..vector.job_vector import store_job_vectors
+from ..vector.ollama import sentence_transformer_model
 from ..vector.resume_vector import store_resume_vectors
 
 

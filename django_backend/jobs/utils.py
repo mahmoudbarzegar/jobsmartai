@@ -2,9 +2,9 @@ import fitz
 import requests
 from bs4 import BeautifulSoup
 
-from .ai_utils import calculate_similarity_score
 from .constants import FIELD_WEIGHT_MAP
 from .models import JobModel, ResumeModel
+from .vector.ollama import calculate_similarity_score
 
 
 def search_jobs_from_remoteok(skills: list):

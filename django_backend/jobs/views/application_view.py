@@ -2,10 +2,10 @@ from drf_spectacular.utils import extend_schema
 from rest_framework import status, viewsets
 from rest_framework.response import Response
 
-from ..ai_utils import calculate_resume_job_score_description
 from ..models import ApplicationModel, JobModel, ResumeModel
 from ..serializers import ApplicationSerializer
 from ..utils import get_similarity_score
+from ..vector.ollama import calculate_resume_job_score_description
 
 
 @extend_schema(tags=["Applications"])

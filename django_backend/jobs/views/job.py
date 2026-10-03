@@ -5,11 +5,11 @@ from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from ..ai_utils import analyze_subject_with_ollama, generate_cover_letter
 from ..models import JobModel, ResumeModel
 from ..schemas import JobInfo
 from ..serializers import JobSerializer
 from ..utils import extract_text_from_pdf, search_job_from_relocate_me, search_jobs_from_remoteok
+from ..vector.ollama import analyze_subject_with_ollama, generate_cover_letter
 
 
 @extend_schema(tags=["Jobs"])
