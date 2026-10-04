@@ -1,5 +1,6 @@
 import streamlit as st
-from job import add_job, list_job, search_job
+from ask_about_match import ask
+from job import add_job, list_job
 from resume import add_resume, list_resume
 from streamlit_option_menu import option_menu
 
@@ -24,9 +25,8 @@ styles = {
 with st.sidebar:
     selected = option_menu(
         menu_title="Navigation",
-        # options=["Add Resume", "List Resume", "Add Job", "List Job", "Search Job"],
-        options=["Add Resume", "List Resume", "Add Job", "List Job"],
-        icons=["file-earmark-person", "list-columns-reverse", "plus-square", "list-columns-reverse", "search"],
+        options=["Add Resume", "List Resume", "Add Job", "List Job", "Ask About Match"],
+        icons=["file-earmark-person", "list-columns-reverse", "plus-square", "list-columns-reverse", "patch-question"],
         menu_icon="cast",
         default_index=0,
         styles=styles,
@@ -40,5 +40,5 @@ elif selected == "List Job":
     list_job()
 elif selected == "Add Job":
     add_job()
-elif selected == "Search Job":
-    search_job()
+elif selected == "Ask About Match":
+    ask()

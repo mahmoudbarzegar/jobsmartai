@@ -125,3 +125,14 @@ def call_retrieve_job_api(job_id: int):
     except requests.RequestException as e:
         st.error(f"API request failed: {e}")
         return None
+
+
+def call_ask_about_match_api(resume_id: int, job_id: int, question: str):
+    url = f"{API_URL}/ask-about-match/job-id/{job_id}/resume-id/{resume_id}"
+    try:
+        response = requests.post(url, json={"question": question}, timeout=600)
+        response.raise_for_status()
+        return response.json()
+    except requests.RequestException as e:
+        st.error(f"API request failed: {e}")
+        return None
