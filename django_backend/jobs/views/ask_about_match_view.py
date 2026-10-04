@@ -22,10 +22,11 @@ class AskAboutMatchView(APIView):
     def post(self, request, resume_id, job_id):
         resume = ResumeModel.objects.get(id=resume_id)
         job = JobModel.objects.get(id=job_id)
+        top_k = request.data["top_k"]
 
         if not is_ingested(resume_id, job_id):
             ingest_job(job=job)
             ingest_resume(resume=resume)
 
-        answer = answer_question(request.data["question"], resume_id, job_id)
+        answer = answer_question(question=request.data["question"], resume_id=resume_id, job_id=job_id, top_k=top_k)
         return Response(data={"status": "success", "result": {"answer": answer}}, status=status.HTTP_200_OK)

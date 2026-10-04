@@ -97,6 +97,7 @@ class JobSerializer(serializers.ModelSerializer):
 
 class AskAboutMatchRequestSerializer(serializers.Serializer):
     question = serializers.CharField(default="Why is this job suitable for me?")
+    top_k = serializers.IntegerField(default=5)
 
 
 class AskAboutMatchResponseSerializer(serializers.Serializer):
