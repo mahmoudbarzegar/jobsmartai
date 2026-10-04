@@ -1,13 +1,17 @@
-from qdrant_client.models import PointStruct
+from qdrant_client.models import Distance, PointStruct, VectorParams
 
-from ..ai_utils import sentence_transformer_model
+from ..constants import FIELD_NAMES, VECTOR_SIZE
 from ..models import JobModel
 from .clients import qdrant_client
+from .ollama import sentence_transformer_model
 from .qdrant_collections import ensure_collection
 
 
 def store_job_vectors(job: JobModel) -> None:
-    ensure_collection(collection_name="jobs")
+    ensure_collection(
+        collection_name="jobs",
+        vectors_config={name: VectorParams(size=VECTOR_SIZE, distance=Distance.COSINE) for name in FIELD_NAMES},
+    )
 
     fields_to_embed = {
         "title": job.title,
