@@ -8,12 +8,40 @@ from .qdrant_collections import ensure_collection, qdrant_client
 
 
 def ingest_resume(resume: ResumeModel) -> None:
-    text = f"{resume.experience_summary} Skills: {', '.join(resume.skills)}. {resume.education_summary}"
-    _store_chunks(text, payload={"resume_id": resume.id, "source": "resume"})
+    text = (
+        f"Resume Description: {', '.join(resume.keywords)} Skills: {', '.join(resume.skills)}. "
+        f"Requirements: {resume.education_summary} {resume.years_experience} "
+        f"Responsibilities: {resume.experience_summary}"
+    )
+    _store_chunks(
+        text,
+        payload={
+            "resume_id": resume.id,
+            "skills": ", ".join(resume.skills),
+            "requirements": f"{resume.education_summary} {resume.years_experience}",
+            "responsibilities": resume.experience_summary,
+            "description": ", ".join(resume.keywords),
+            "type": "resume",
+        },
+    )
 
 
 def ingest_job(job: JobModel) -> None:
-    _store_chunks(job.description, payload={"job_id": job.id, "source": "job"})
+    text = (
+        f"Job Description: {job.description} Skills: {', '.join(job.skills)}. Requirements: {job.requirements} "
+        f"Responsibilities: {job.responsibilities}"
+    )
+    _store_chunks(
+        text,
+        payload={
+            "job_id": job.id,
+            "skills": ", ".join(job.skills),
+            "requirements": job.requirements,
+            "responsibilities": job.responsibilities,
+            "description": job.description,
+            "type": "job",
+        },
+    )
 
 
 def _store_chunks(text: str, payload: dict) -> None:
