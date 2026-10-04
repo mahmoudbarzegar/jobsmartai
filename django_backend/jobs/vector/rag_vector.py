@@ -7,18 +7,18 @@ from .clients import sentence_transformer_model
 from .qdrant_collections import ensure_collection, qdrant_client
 
 
-def ingest_document(resume: ResumeModel, job: JobModel) -> None:
+def ingest_resume(resume: ResumeModel) -> None:
+    text = f"{resume.experience_summary} Skills: {', '.join(resume.skills)}. {resume.education_summary}"
+    _store_chunks(text, payload={"resume_id": resume.id, "source": "resume"})
+
+
+def ingest_job(job: JobModel) -> None:
+    _store_chunks(job.description, payload={"job_id": job.id, "source": "job"})
+
+
+def _store_chunks(text: str, payload: dict) -> None:
     ensure_collection(collection_name="rag_chunks", vectors_config=VectorParams(size=384, distance=Distance.COSINE))
-
-    full_text = f"""
-    Resume:
-    {resume.experience_summary} Skills: {', '.join(resume.skills)}. Education: {resume.education_summary}.
-
-    Job Description:
-    {job.description}
-    """
-
-    chunks = _chunk_text(full_text)
+    chunks = _chunk_text(text)
     points = []
     for chunk in chunks:
         vector = sentence_transformer_model.encode(chunk).tolist()
@@ -26,7 +26,7 @@ def ingest_document(resume: ResumeModel, job: JobModel) -> None:
             PointStruct(
                 id=str(uuid.uuid4()),
                 vector=vector,
-                payload={"text": chunk, "resume_id": resume.id, "job_id": job.id},
+                payload={"text": chunk, **payload},
             )
         )
 
@@ -63,19 +63,36 @@ def is_ingested(resume_id: int, job_id: int) -> bool:
 def retrieve_chunks(question: str, resume_id: int, job_id: int, top_k: int = 5) -> list[str]:
     question_vector = sentence_transformer_model.encode(question).tolist()
 
-    hits = qdrant_client.query_points(
+    resume_hits = qdrant_client.query_points(
         collection_name="rag_chunks",
         query=question_vector,
-        query_filter=Filter(
-            must=[
-                FieldCondition(key="resume_id", match=MatchValue(value=resume_id)),
-                FieldCondition(key="job_id", match=MatchValue(value=job_id)),
-            ]
-        ),
-        limit=top_k,
+        query_filter=Filter(must=[FieldCondition(key="resume_id", match=MatchValue(value=resume_id))]),
+        # limit=top_k,
     ).points
 
-    return [hit.payload["text"] for hit in hits]
+    job_hits = qdrant_client.query_points(
+        collection_name="rag_chunks",
+        query=question_vector,
+        query_filter=Filter(must=[FieldCondition(key="job_id", match=MatchValue(value=job_id))]),
+        # limit=top_k,
+    ).points
+
+    all_hits = resume_hits + job_hits
+    all_hits.sort(key=lambda h: h.score, reverse=True)
+
+    # return [h.payload["text"] for h in resume_hits] + [h.payload["text"] for h in job_hits]
+
+    seen = set()
+    unique_chunks = []
+    for hit in all_hits:
+        text = hit.payload["text"]
+        if text not in seen:
+            seen.add(text)
+            unique_chunks.append(text)
+        if len(unique_chunks) >= top_k:
+            break
+
+    return unique_chunks
 
 
 def _chunk_text(text: str, chunk_size: int = 300, overlap: int = 50) -> list[str]:

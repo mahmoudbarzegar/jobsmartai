@@ -6,7 +6,7 @@ from rest_framework.views import APIView
 from ..models import JobModel, ResumeModel
 from ..serializers import AskAboutMatchRequestSerializer, AskAboutMatchResponseSerializer
 from ..vector.ollama import answer_question
-from ..vector.rag_vector import ingest_document, is_ingested
+from ..vector.rag_vector import ingest_job, ingest_resume, is_ingested
 
 
 class AskAboutMatchView(APIView):
@@ -24,7 +24,8 @@ class AskAboutMatchView(APIView):
         job = JobModel.objects.get(id=job_id)
 
         if not is_ingested(resume_id, job_id):
-            ingest_document(resume, job)  # runs once per pair
+            ingest_job(job=job)
+            ingest_resume(resume=resume)
 
         answer = answer_question(request.data["question"], resume_id, job_id)
         return Response(data={"status": "success", "result": {"answer": answer}}, status=status.HTTP_200_OK)
