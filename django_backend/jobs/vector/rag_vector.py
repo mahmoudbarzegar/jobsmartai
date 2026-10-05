@@ -1,6 +1,15 @@
 import uuid
+from typing import Any
 
-from qdrant_client.models import Distance, FieldCondition, Filter, MatchValue, PointStruct, VectorParams
+from qdrant_client.models import (
+    Distance,
+    FieldCondition,
+    Filter,
+    MatchText,
+    MatchValue,
+    PointStruct,
+    VectorParams,
+)
 
 from ..models import JobModel, ResumeModel
 from .clients import sentence_transformer_model
@@ -75,7 +84,8 @@ def delete_rag_chunks(resume_id: int | None = None, job_id: int | None = None):
 
 
 def is_ingested(resume_id: int, job_id: int) -> bool:
-    ensure_collection("rag_chunks", vectors_config=VectorParams(size=384, distance=Distance.COSINE))
+    ensure_collection(collection_name="rag_chunks", vectors_config={VectorParams(size=384, distance=Distance.COSINE)})
+
     count = qdrant_client.count(
         collection_name="rag_chunks",
         count_filter=Filter(
@@ -88,22 +98,25 @@ def is_ingested(resume_id: int, job_id: int) -> bool:
     return count > 0
 
 
-def retrieve_chunks(question: str, resume_id: int, job_id: int, top_k: int = 5) -> list[str]:
+def retrieve_chunks(
+    question: str,
+    resume_id: int,
+    job_id: int,
+    resume_filters: dict[str, str],
+    job_filters: dict[str, str],
+    top_k: int = 5,
+) -> list[str]:
     question_vector = sentence_transformer_model.encode(question).tolist()
 
-    resume_hits = qdrant_client.query_points(
-        collection_name="rag_chunks",
-        query=question_vector,
-        query_filter=Filter(must=[FieldCondition(key="resume_id", match=MatchValue(value=resume_id))]),
-        # limit=top_k,
-    ).points
+    resume_must_conditions = [
+        FieldCondition(key="resume_id", match=MatchValue(value=resume_id)),
+    ]
+    resume_hits = _get_hits(question_vector, resume_must_conditions, resume_filters, top_k * 2)
 
-    job_hits = qdrant_client.query_points(
-        collection_name="rag_chunks",
-        query=question_vector,
-        query_filter=Filter(must=[FieldCondition(key="job_id", match=MatchValue(value=job_id))]),
-        # limit=top_k,
-    ).points
+    job_must_conditions = [
+        FieldCondition(key="job_id", match=MatchValue(value=job_id)),
+    ]
+    job_hits = _get_hits(question_vector, job_must_conditions, job_filters, top_k * 2)
 
     all_hits = resume_hits + job_hits
     all_hits.sort(key=lambda h: h.score, reverse=True)
@@ -121,6 +134,31 @@ def retrieve_chunks(question: str, resume_id: int, job_id: int, top_k: int = 5) 
             break
 
     return unique_chunks
+
+
+def _get_hits(question_vector: Any, must_conditions: list, filters: dict[str, str], top_k: int = 5) -> Any:
+    filters = filters or {}
+
+    if "skills" in filters:
+        must_conditions.append(FieldCondition(key="skills", match=MatchText(text=filters["skills"])))
+
+    if "requirements" in filters:
+        must_conditions.append(FieldCondition(key="requirements", match=MatchText(text=filters["requirements"])))
+
+    if "responsibilities" in filters:
+        must_conditions.append(
+            FieldCondition(key="responsibilities", match=MatchText(text=filters["responsibilities"]))
+        )
+
+    if "description" in filters:
+        must_conditions.append(FieldCondition(key="description", match=MatchText(text=filters["description"])))
+
+    return qdrant_client.query_points(
+        collection_name="rag_chunks",
+        query=question_vector,
+        query_filter=Filter(must=must_conditions),
+        # limit=top_k,
+    ).points
 
 
 def _chunk_text(text: str, chunk_size: int = 300, overlap: int = 50) -> list[str]:
