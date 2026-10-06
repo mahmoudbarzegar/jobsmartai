@@ -5,14 +5,19 @@ from qdrant_client.models import (
     Distance,
     FieldCondition,
     Filter,
+    Fusion,
+    FusionQuery,
     MatchText,
     MatchValue,
     PointStruct,
+    Prefetch,
+    SparseVector,
+    SparseVectorParams,
     VectorParams,
 )
 
 from ..models import JobModel, ResumeModel
-from .clients import sentence_transformer_model
+from .clients import sentence_transformer_model, sparse_model
 from .qdrant_collections import ensure_collection, qdrant_client
 
 
@@ -54,16 +59,26 @@ def ingest_job(job: JobModel) -> None:
 
 
 def _store_chunks(text: str, payload: dict) -> None:
-    ensure_collection(collection_name="rag_chunks", vectors_config=VectorParams(size=384, distance=Distance.COSINE))
+    ensure_collection(
+        collection_name="rag_chunks",
+        vectors_config={"dense": VectorParams(size=384, distance=Distance.COSINE)},
+        sparse_vectors_config={"sparse": SparseVectorParams()},
+    )
+
     chunks = _chunk_text(text)
+    dense_vectors = sentence_transformer_model.encode(chunks).tolist()
+    sparse_vectors = list(sparse_model.embed(chunks))
+
     points = []
-    for chunk in chunks:
-        vector = sentence_transformer_model.encode(chunk).tolist()
+    for chunk, dense_vec, sparse_vec in zip(chunks, dense_vectors, sparse_vectors, strict=True):
         points.append(
             PointStruct(
                 id=str(uuid.uuid4()),
-                vector=vector,
-                payload={"text": chunk, **payload},
+                vector={
+                    "dense": dense_vec,
+                    "sparse": SparseVector(indices=sparse_vec.indices.tolist(), values=sparse_vec.values.tolist()),
+                },
+                payload={**payload, "text": chunk},
             )
         )
 
@@ -84,7 +99,11 @@ def delete_rag_chunks(resume_id: int | None = None, job_id: int | None = None):
 
 
 def is_ingested(resume_id: int, job_id: int) -> bool:
-    ensure_collection(collection_name="rag_chunks", vectors_config={VectorParams(size=384, distance=Distance.COSINE)})
+    ensure_collection(
+        collection_name="rag_chunks",
+        vectors_config={"dense": VectorParams(size=384, distance=Distance.COSINE)},
+        sparse_vectors_config={"sparse": SparseVectorParams()},
+    )
 
     count = qdrant_client.count(
         collection_name="rag_chunks",
@@ -106,17 +125,17 @@ def retrieve_chunks(
     job_filters: dict[str, str],
     top_k: int = 5,
 ) -> list[str]:
-    question_vector = sentence_transformer_model.encode(question).tolist()
+    # question_vector = sentence_transformer_model.encode(question).tolist()
 
     resume_must_conditions = [
         FieldCondition(key="resume_id", match=MatchValue(value=resume_id)),
     ]
-    resume_hits = _get_hits(question_vector, resume_must_conditions, resume_filters, top_k * 2)
+    resume_hits = _get_hits(question, resume_must_conditions, resume_filters, top_k * 2)
 
     job_must_conditions = [
         FieldCondition(key="job_id", match=MatchValue(value=job_id)),
     ]
-    job_hits = _get_hits(question_vector, job_must_conditions, job_filters, top_k * 2)
+    job_hits = _get_hits(question, job_must_conditions, job_filters, top_k * 2)
 
     all_hits = resume_hits + job_hits
     all_hits.sort(key=lambda h: h.score, reverse=True)
@@ -136,8 +155,11 @@ def retrieve_chunks(
     return unique_chunks
 
 
-def _get_hits(question_vector: Any, must_conditions: list, filters: dict[str, str], top_k: int = 5) -> Any:
+def _get_hits(question: Any, must_conditions: list, filters: dict[str, str], top_k: int = 5) -> Any:
     filters = filters or {}
+
+    dense_vector = sentence_transformer_model.encode(question).tolist()
+    sparse_vector = list(sparse_model.embed([question]))[0]
 
     if "skills" in filters:
         must_conditions.append(FieldCondition(key="skills", match=MatchText(text=filters["skills"])))
@@ -153,11 +175,26 @@ def _get_hits(question_vector: Any, must_conditions: list, filters: dict[str, st
     if "description" in filters:
         must_conditions.append(FieldCondition(key="description", match=MatchText(text=filters["description"])))
 
+    # return qdrant_client.query_points(
+    #     collection_name="rag_chunks",
+    #     query=question_vector,
+    #     query_filter=Filter(must=must_conditions),
+    #     # limit=top_k,
+    # ).points
+
     return qdrant_client.query_points(
         collection_name="rag_chunks",
-        query=question_vector,
-        query_filter=Filter(must=must_conditions),
-        # limit=top_k,
+        prefetch=[
+            Prefetch(query=dense_vector, using="dense", filter=Filter(must=must_conditions), limit=top_k),
+            Prefetch(
+                query=SparseVector(indices=sparse_vector.indices.tolist(), values=sparse_vector.values.tolist()),
+                using="sparse",
+                filter=Filter(must=must_conditions),
+                limit=top_k,
+            ),
+        ],
+        query=FusionQuery(fusion=Fusion.RRF),
+        limit=top_k,
     ).points
 
 
