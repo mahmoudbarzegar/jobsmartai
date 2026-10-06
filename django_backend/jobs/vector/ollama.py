@@ -151,8 +151,15 @@ def calculate_similarity_score(resume_value: str, job_value: str) -> float:
     return float(similarity[0][0])
 
 
-def answer_question(question: str, resume_id: int, job_id: int) -> str:
-    context_chunks = retrieve_chunks(question, resume_id, job_id)
+def answer_question(
+    question: str,
+    resume_id: int,
+    job_id: int,
+    top_k: int,
+    resume_filters: dict[str, str],
+    job_filters: dict[str, str],
+) -> str:
+    context_chunks = retrieve_chunks(question, resume_id, job_id, resume_filters, job_filters, top_k)
     context = "\n\n".join(context_chunks)
 
     prompt = f"""
