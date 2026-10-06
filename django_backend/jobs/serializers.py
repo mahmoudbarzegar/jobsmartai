@@ -98,6 +98,22 @@ class JobSerializer(serializers.ModelSerializer):
 class AskAboutMatchRequestSerializer(serializers.Serializer):
     question = serializers.CharField(default="Why is this job suitable for me?")
     top_k = serializers.IntegerField(default=5)
+    resume_filters = serializers.DictField(
+        default={
+            "skills": "python",
+            "requirements": "django",
+            "responsibilities": "Maintenance",
+            "description": "backend",
+        }
+    )
+    job_filters = serializers.DictField(
+        default={
+            "skills": "python",
+            "requirements": "django",
+            "responsibilities": "Maintenance",
+            "description": "backend",
+        }
+    )
 
 
 class AskAboutMatchResponseSerializer(serializers.Serializer):
