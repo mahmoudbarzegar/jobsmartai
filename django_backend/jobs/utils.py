@@ -1,4 +1,4 @@
-import fitz
+import pymupdf
 import requests
 from bs4 import BeautifulSoup
 
@@ -60,13 +60,8 @@ def search_job_from_relocate_me(skills: list):
 
 
 def extract_text_from_pdf(pdf_file):
-    doc = fitz.open(stream=pdf_file.read(), filetype="pdf")
-    text = ""
-    for page in doc:
-        result = page.get_text()
-        if isinstance(result, str):
-            text += result
-    return text
+    doc = pymupdf.open(stream=pdf_file.read(), filetype="pdf")
+    return "".join(page.get_text() for page in doc)
 
 
 def get_similarity_score(resume: ResumeModel, job: JobModel) -> tuple[float, dict]:
