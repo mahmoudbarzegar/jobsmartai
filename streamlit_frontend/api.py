@@ -1,3 +1,5 @@
+from typing import Any
+
 import requests
 import streamlit as st
 
@@ -127,10 +129,12 @@ def call_retrieve_job_api(job_id: int):
         return None
 
 
-def call_ask_about_match_api(resume_id: int, job_id: int, question: str):
+def call_ask_about_match_api(resume_id: int, job_id: int, input_data: dict[str, Any]):
     url = f"{API_URL}/ask-about-match/job-id/{job_id}/resume-id/{resume_id}"
+
+    st.write(f"The input_data: {input_data}")
     try:
-        response = requests.post(url, json={"question": question}, timeout=600)
+        response = requests.post(url, json=input_data, timeout=600)
         response.raise_for_status()
         return response.json()
     except requests.RequestException as e:
