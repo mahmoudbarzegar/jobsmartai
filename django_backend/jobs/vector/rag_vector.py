@@ -170,18 +170,18 @@ def _get_hits(question: Any, must_conditions: list, filters: dict[str, str], top
     dense_vector = sentence_transformer_model.encode(question).tolist()
     sparse_vector = list(sparse_model.embed([question]))[0]
 
-    if "skills" in filters:
+    if "skills" in filters and filters["skills"].strip() != "":
         must_conditions.append(FieldCondition(key="skills", match=MatchText(text=filters["skills"])))
 
-    if "requirements" in filters:
+    if "requirements" in filters and filters["requirements"].strip() != "":
         must_conditions.append(FieldCondition(key="requirements", match=MatchText(text=filters["requirements"])))
 
-    if "responsibilities" in filters:
+    if "responsibilities" in filters and filters["responsibilities"].strip() != "":
         must_conditions.append(
             FieldCondition(key="responsibilities", match=MatchText(text=filters["responsibilities"]))
         )
 
-    if "description" in filters:
+    if "description" in filters and filters["description"].strip() != "":
         must_conditions.append(FieldCondition(key="description", match=MatchText(text=filters["description"])))
 
     # return qdrant_client.query_points(
