@@ -6,4 +6,4 @@ qdrant_client = QdrantClient(host="localhost", port=6333)
 sentence_transformer_model = SentenceTransformer(model_name_or_path="all-MiniLM-L6-v2", device="cpu")
 ollama_url = "http://127.0.0.1:11434/api/generate"
 sparse_model = SparseTextEmbedding(model_name="Qdrant/bm25")
-reranker_model = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2")
+reranker_model = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2", device="cpu")

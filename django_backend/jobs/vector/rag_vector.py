@@ -17,7 +17,7 @@ from qdrant_client.models import (
 )
 
 from ..models import JobModel, ResumeModel
-from .clients import sentence_transformer_model, sparse_model
+from .clients import reranker_model, sentence_transformer_model, sparse_model
 from .qdrant_collections import ensure_collection, qdrant_client
 
 
@@ -130,29 +130,38 @@ def retrieve_chunks(
     resume_must_conditions = [
         FieldCondition(key="resume_id", match=MatchValue(value=resume_id)),
     ]
-    resume_hits = _get_hits(question, resume_must_conditions, resume_filters, top_k * 2)
+    resume_hits = _get_hits(question, resume_must_conditions, resume_filters, top_k * 4)
 
     job_must_conditions = [
         FieldCondition(key="job_id", match=MatchValue(value=job_id)),
     ]
-    job_hits = _get_hits(question, job_must_conditions, job_filters, top_k * 2)
+    job_hits = _get_hits(question, job_must_conditions, job_filters, top_k * 4)
 
     all_hits = resume_hits + job_hits
     all_hits.sort(key=lambda h: h.score, reverse=True)
 
     # return [h.payload["text"] for h in resume_hits] + [h.payload["text"] for h in job_hits]
 
+    # seen = set()
+    # unique_chunks = []
+    # for hit in all_hits:
+    #     text = hit.payload["text"]
+    #     if text not in seen:
+    #         seen.add(text)
+    #         unique_chunks.append(text)
+    #     if len(unique_chunks) >= top_k:
+    #         break
+
     seen = set()
-    unique_chunks = []
+    candidate_chunks = []
     for hit in all_hits:
         text = hit.payload["text"]
         if text not in seen:
             seen.add(text)
-            unique_chunks.append(text)
-        if len(unique_chunks) >= top_k:
-            break
+            candidate_chunks.append(text)
 
-    return unique_chunks
+    # return unique_chunks
+    return _rerank_chunks(question, candidate_chunks, top_k=top_k)
 
 
 def _get_hits(question: Any, must_conditions: list, filters: dict[str, str], top_k: int = 5) -> Any:
@@ -198,7 +207,7 @@ def _get_hits(question: Any, must_conditions: list, filters: dict[str, str], top
     ).points
 
 
-def _chunk_text(text: str, chunk_size: int = 300, overlap: int = 50) -> list[str]:
+def _chunk_text(text: str, chunk_size: int = 300, overlap: int = 25) -> list[str]:
     words = text.split()
     chunks = []
     for i in range(0, len(words), chunk_size - overlap):
@@ -206,3 +215,16 @@ def _chunk_text(text: str, chunk_size: int = 300, overlap: int = 50) -> list[str
         if chunk:
             chunks.append(chunk)
     return chunks
+
+
+def _rerank_chunks(question: str, chunks: list[str], top_k: int = 5) -> list[str]:
+    if not chunks:
+        return []
+
+    pairs = [(question, chunk) for chunk in chunks]
+    scores = reranker_model.predict(pairs)
+
+    scored_chunks = list(zip(chunks, scores, strict=True))
+    scored_chunks.sort(key=lambda x: x[1], reverse=True)
+
+    return [chunk for chunk, score in scored_chunks[:top_k]]
