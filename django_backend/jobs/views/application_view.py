@@ -1,5 +1,5 @@
-from drf_spectacular.utils import extend_schema
-from rest_framework import status, viewsets
+from drf_spectacular.utils import extend_schema, inline_serializer
+from rest_framework import serializers, status, viewsets
 from rest_framework.response import Response
 
 from ..models import ApplicationModel, JobModel, ResumeModel
@@ -15,6 +15,17 @@ class ApplicationViewSet(viewsets.ModelViewSet):
     queryset = model_class.objects.all()
     serializer_class = ApplicationSerializer
 
+    @extend_schema(
+        summary="Search Job",
+        description="Search Job by resume_id",
+        request=inline_serializer(
+            name="ApplicationRequest",
+            fields={
+                "job_id": serializers.IntegerField(),
+                "resume_id": serializers.IntegerField(),
+            },
+        ),
+    )
     def create(self, request, *args, **kwargs):
         try:
             application_data = request.data
