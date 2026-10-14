@@ -29,10 +29,9 @@ def call_list_resumes_api():
 
 
 def call_search_job_api(resume_id: int) -> dict | None:
-    url = f"{API_URL}/jobs/search"
+    url = f"{API_URL}/jobs/search/resume-id/{resume_id}"
     try:
-        payload = {"resume_id": resume_id}
-        response = requests.post(url, json=payload, timeout=90)
+        response = requests.get(url, timeout=1800)
         response.raise_for_status()
         return response.json()
     except requests.RequestException as e:
