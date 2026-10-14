@@ -137,7 +137,7 @@ def generate_cover_letter(resume_text: str, job_description: str) -> str | dict:
        - Output only the cover letter text
        """
 
-    response = requests.post(ollama_url, json={"model": "mistral", "prompt": prompt, "stream": False}, timeout=300)
+    response = requests.post(ollama_url, json={"model": "mistral", "prompt": prompt, "stream": False}, timeout=900)
 
     if response.status_code == 200:
         return parse_ollama_json_response(response)
@@ -174,7 +174,7 @@ def answer_question(
     response = requests.post(
         ollama_url,
         json={"model": "mistral", "prompt": prompt, "stream": False},
-        timeout=300,
+        timeout=900,
     )
     return response.json()["response"]
 
