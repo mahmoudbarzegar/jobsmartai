@@ -15,7 +15,7 @@ class ResumeInfo(BaseModel):
 
 
 class JobInfo(BaseModel):
-    requirements: str | None = None
+    requirements: str = ""
     skills: list[str]
     responsibilities: str
 
