@@ -84,20 +84,23 @@ class JobViewSet(viewsets.ModelViewSet):
                         description=job["description"],
                         link=job["link"],
                     )
-                    job_object.save()
 
                     score, breakdown = get_similarity_score(job=job_object, resume=resume)
-                    score_description = ""
-                    if score > 50:
-                        resume_summary = (
-                            f"{resume.latest_job_title} at {resume.company}, "
-                            f"{resume.years_experience} years experience. "
-                            f"Skills: {', '.join(resume.skills)}. {resume.experience_summary}"
-                        )
 
-                        score_description = calculate_resume_job_score_description(
-                            resume_text=resume_summary, job_description=job_object.description, score=score
-                        ).reason
+                    if score < 40:
+                        continue
+
+                    job_object.save()
+
+                    resume_summary = (
+                        f"{resume.latest_job_title} at {resume.company}, "
+                        f"{resume.years_experience} years experience. "
+                        f"Skills: {', '.join(resume.skills)}. {resume.experience_summary}"
+                    )
+
+                    score_description = calculate_resume_job_score_description(
+                        resume_text=resume_summary, job_description=job_object.description, score=score
+                    ).reason
 
                     application = ApplicationModel(
                         resume=resume, job=job_object, score=score, score_description=score_description
