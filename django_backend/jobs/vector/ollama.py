@@ -27,7 +27,7 @@ def analyze_subject_with_ollama[T: BaseModel](subject_text: str, subject_type: s
             "stream": False,
             "format": subject_schema.model_json_schema(),  # <-- this is the enforcement
         },
-        timeout=300,
+        timeout=900,
     )
 
     if response.status_code == 200:
