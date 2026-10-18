@@ -1,3 +1,5 @@
+import hashlib
+
 import pymupdf
 import requests
 from bs4 import BeautifulSoup
@@ -16,7 +18,7 @@ def search_jobs_from_remoteok(skills: list):
         response = requests.get(url, headers=headers, timeout=300)
         if response.status_code == 200:
             return [
-                {"title": job["position"], "link": job["url"], "description": job["description"]}
+                {"id": job["id"], "title": job["position"], "link": job["url"], "description": job["description"]}
                 for job in response.json()[1:]
             ]
         return {}
@@ -38,6 +40,7 @@ def search_job_from_relocate_me(skills: list):
             title_tag = card.select_one(".job__title b")
             link_tag = card.select_one(".job__title a")
             url_suffix = link_tag["href"] if link_tag else ""
+            title = title_tag.text.strip() if title_tag else "N/A"
 
             job_url = "https://relocate.me" + url_suffix
             job_result = requests.get(job_url, headers=headers, timeout=300)
@@ -46,7 +49,8 @@ def search_job_from_relocate_me(skills: list):
 
             jobs.append(
                 {
-                    "title": title_tag.text.strip() if title_tag else "N/A",
+                    "id": hashlib.md5((url or f"{title}").encode()).hexdigest()[:16],  # noqa: S324
+                    "title": title,
                     "link": job_url,
                     "description": description_block.get_text(separator="\n").strip()
                     if description_block
@@ -56,7 +60,7 @@ def search_job_from_relocate_me(skills: list):
         return jobs
 
     except Exception:
-        return {}
+        return
 
 
 def extract_text_from_pdf(pdf_file):
