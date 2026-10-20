@@ -5,6 +5,7 @@ from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from ..agent.job_finder import find_jobs
 from ..models import ApplicationModel, JobModel, ResumeModel
 from ..schemas import JobInfo
 from ..serializers import JobSerializer
@@ -58,62 +59,65 @@ class JobViewSet(viewsets.ModelViewSet):
     def search(self, request, resume_id):
         try:
             resume = ResumeModel.objects.get(id=resume_id)
-
-            jobs_from_remote_ok = search_jobs_from_remoteok(skills=resume.skills)
-            jobs_from_relocate_me = search_job_from_relocate_me(skills=resume.skills)
-
-            jobs = jobs_from_remote_ok + jobs_from_relocate_me
-
-            index = 0
-            for job in jobs:
-                # This condition is only set to avoid straining the hardware, and can be changed
-                # if the hardware is better to get better results.
-                index = index + 1
-                if index > 3:
-                    break
-
-                try:
-                    analyze_job_text = analyze_subject_with_ollama(
-                        subject_text=job["description"], subject_type="job", subject_schema=JobInfo
-                    )
-                    data = analyze_job_text.model_dump()
-
-                    job_object = self.model_class(
-                        **data,
-                        title=job["title"],
-                        description=job["description"],
-                        link=job["link"],
-                    )
-
-                    score, breakdown = get_similarity_score(job=job_object, resume=resume)
-
-                    if score < 40:
-                        continue
-
-                    job_object.save()
-
-                    resume_summary = (
-                        f"{resume.latest_job_title} at {resume.company}, "
-                        f"{resume.years_experience} years experience. "
-                        f"Skills: {', '.join(resume.skills)}. {resume.experience_summary}"
-                    )
-
-                    score_description = calculate_resume_job_score_description(
-                        resume_text=resume_summary, job_description=job_object.description, score=score
-                    ).reason
-
-                    application = ApplicationModel(
-                        resume=resume, job=job_object, score=score, score_description=score_description
-                    )
-                    application.save()
-
-                except Exception as e:
-                    logging.exception(f"Exception in searching jobs, {str(e)}")
-                    continue
+            # self._search_job_without_langgraph(resume=resume)
+            find_jobs(resume=resume)
 
             return Response(data={"status": "success", "result": "OK"}, status=status.HTTP_200_OK)
         except Exception as e:
             return Response(data={"status": "error", "result": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    def _search_job_without_langgraph(self, resume: ResumeModel):
+        jobs_from_remote_ok = search_jobs_from_remoteok(skills=resume.skills)
+        jobs_from_relocate_me = search_job_from_relocate_me(skills=resume.skills)
+
+        jobs = jobs_from_remote_ok + jobs_from_relocate_me
+
+        index = 0
+        for job in jobs:
+            # This condition is only set to avoid straining the hardware, and can be changed
+            # if the hardware is better to get better results.
+            index = index + 1
+            if index > 3:
+                break
+
+            try:
+                analyze_job_text = analyze_subject_with_ollama(
+                    subject_text=job["description"], subject_type="job", subject_schema=JobInfo
+                )
+                data = analyze_job_text.model_dump()
+
+                job_object = self.model_class(
+                    **data,
+                    title=job["title"],
+                    description=job["description"],
+                    link=job["link"],
+                )
+
+                score, breakdown = get_similarity_score(job=job_object, resume=resume)
+
+                if score < 40:
+                    continue
+
+                job_object.save()
+
+                resume_summary = (
+                    f"{resume.latest_job_title} at {resume.company}, "
+                    f"{resume.years_experience} years experience. "
+                    f"Skills: {', '.join(resume.skills)}. {resume.experience_summary}"
+                )
+
+                score_description = calculate_resume_job_score_description(
+                    resume_text=resume_summary, job_description=job_object.description, score=score
+                ).reason
+
+                application = ApplicationModel(
+                    resume=resume, job=job_object, score=score, score_description=score_description
+                )
+                application.save()
+
+            except Exception as e:
+                logging.exception(f"Exception in searching jobs, {str(e)}")
+                continue
 
     # @extend_schema(
     #     request={
