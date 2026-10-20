@@ -23,6 +23,7 @@ dependencies = [
     "scikit-learn",
     "qdrant-client>=1.19.1",
     "fastembed==0.8.1",
+    "langgraph>=1.2.16",
 ]
 
 [tool.uv.sources]
