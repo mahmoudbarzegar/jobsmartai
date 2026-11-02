@@ -1,5 +1,3 @@
-import time
-
 import streamlit as st
 from api import (
     call_calculate_score_application_api,
@@ -18,22 +16,22 @@ def list_job():
     jobs = result["result"]
 
     st.write("### Jobs")
-    for _, job in enumerate(jobs):
-        st.session_state[f"show_form_{job['id']}"] = False
+    for job in jobs:
+        form_key = f"show_form_{job['id']}"
+        st.session_state.setdefault(form_key, False)  # only sets it the first time
 
         col1, col2, col3, col4, col5 = st.columns([3, 1, 1, 1, 1])
-
         col1.write(job["title"])
 
         if col2.button("View", key=f"view_{job['id']}"):
-            del st.session_state[f"show_form_{job['id']}"]
+            st.session_state[form_key] = False
             st.write(f"**Details for {job['title']}:**")
             st.html("<strong style='font-size:25px'>Job Description:</strong><hr/>")
             st.markdown(job["description"], unsafe_allow_html=True)
             st.html("<hr/>")
 
         if col3.button("History", key=f"history_{job['id']}"):
-            del st.session_state[f"show_form_{job['id']}"]
+            st.session_state[form_key] = False
             for _, application in enumerate(job["job_applications"]):
                 st.html(f"<strong style='font-size:18px'>Resume_link: </strong>{application['resume_link']}")
                 st.html(f"<strong style='font-size:18px'>Score: </strong> {round(application['score'] * 100, 1)}")
@@ -42,7 +40,7 @@ def list_job():
                 st.html("<hr/><hr/>")
 
         if col4.button("Apply", key=f"apply_{job['id']}"):
-            st.session_state[f"show_form_{job['id']}"] = True
+            st.session_state[form_key] = True
 
         if st.session_state.get(f"show_form_{job['id']}"):
             with st.form(key=f"apply_form_{job['id']}"):
@@ -71,9 +69,8 @@ def list_job():
                     st.write(f"**Status:** {response['status']}")
 
         if col5.button("Find Related Resumes", key=f"resume_related_{job['id']}"):
-            del st.session_state[f"show_form_{job['id']}"]
+            st.session_state[form_key] = False
             with st.spinner("Finding related resumes..."):
-                time.sleep(3)  # Simulate slow data loading
                 find_best_resumes_result = call_find_best_resumes_api(job["id"])
                 if find_best_resumes_result["status"] == "success":
                     job_result = call_retrieve_job_api(job["id"])
