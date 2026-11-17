@@ -1,22 +1,31 @@
-x-django-env: &django-env
-  CELERY_BROKER_URL: redis://redis:6379/0
-  CELERY_RESULT_BACKEND: redis://redis:6379/0
-  ALLOWED_HOSTS: "django,localhost,127.0.0.1"
-  POSTGRES_DB: jobsmartai
-  POSTGRES_USER: jobsmartai
-  POSTGRES_PASSWORD: change-me
-  POSTGRES_HOST: db
-  POSTGRES_PORT: "5432"
-  OLLAMA_URL: http://ollama:11434
-
+name: jobsmartai
 services:
+  django-backend:
+    build:
+      context: .
+      dockerfile: ./django_backend/Dockerfile
+#      args:
+#        HTTP_PROXY: http://127.0.0.1:12334
+#        HTTPS_PROXY: http://127.0.0.1:12334
+#        NO_PROXY: localhost,127.0.0.1
+    image: jobsmartai-django
+    command: >
+        sh -c "
+        python manage.py migrate &&
+        daphne -b 0.0.0.0 -p 8000 jonsmartai.asgi:application"
+    ports:
+      - "8090:8000"
+    env_file: ./django_backend/.env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    restart: unless-stopped
+
   db:
     image: postgres:16-alpine
-    container_name: jobsmartai-db
-    environment:
-      POSTGRES_DB: jobsmartai
-      POSTGRES_USER: jobsmartai
-      POSTGRES_PASSWORD: change-me
+    env_file: ./django_backend/.env
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -30,67 +39,41 @@ services:
     image: redis:7-alpine
     restart: unless-stopped
 
-  django:
-    build:
-      context: .
-      dockerfile: django_backend/Dockerfile
-
-      args:
-        HTTP_PROXY: http://127.0.0.1:12334
-        HTTPS_PROXY: http://127.0.0.1:12334
-        NO_PROXY: localhost,127.0.0.1
-    image: jobsmartai-django
-    command: >
-      sh -c "python manage.py migrate &&
-             daphne -b 0.0.0.0 -p 8000 jonsmartai.asgi:application"
-    ports:
-      - "8000:8000"
-    environment: *django-env
-    depends_on:
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_started
-    restart: unless-stopped
-
   celery:
     image: jobsmartai-django
-    pull_policy: never
     command: celery -A jobsmartai worker -l info
-    environment: *django-env
+    env_file: ./django_backend/.env
     depends_on:
       db:
         condition: service_healthy
       redis:
         condition: service_started
-      django:
+      django-backend:
         condition: service_started
     restart: unless-stopped
 
   celery-beat:
     image: jobsmartai-django
     command: celery -A jobsmartai beat -l info
-    environment: *django-env
+    env_file: ./django_backend/.env
     depends_on:
       - celery
     restart: unless-stopped
 
   streamlit:
-    image: jobsmartai-streamlit
     build:
       context: .
       dockerfile: streamlit_frontend/Dockerfile
-      network: host
-      args:
-        HTTP_PROXY: http://127.0.0.1:12334
-        HTTPS_PROXY: http://127.0.0.1:12334
-        NO_PROXY: localhost,127.0.0.1
+#      network: host
+#      args:
+#        HTTP_PROXY: http://127.0.0.1:12334
+#        HTTPS_PROXY: http://127.0.0.1:12334
+#        NO_PROXY: localhost,127.0.0.1
     ports:
       - "8501:8501"
-    environment:
-      API_URL: http://django:8000/api
+#    env_file: ./streamlit_frontend/.env
     depends_on:
-      - django
+      - django-backend
     restart: unless-stopped
 
 volumes:

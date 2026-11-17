@@ -34,6 +34,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    # "daphne",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -86,7 +87,16 @@ DATABASES = {
         "NAME": BASE_DIR / "db.sqlite3",
     }
 }
-
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.postgresql",
+#         "NAME": os.environ.get("POSTGRES_DB", "jobsmartai"),
+#         "USER": os.environ.get("POSTGRES_USER", "jobsmartai"),
+#         "PASSWORD": os.environ.get("POSTGRES_PASSWORD", ""),
+#         "HOST": os.environ.get("POSTGRES_HOST", "localhost"),
+#         "PORT": os.environ.get("POSTGRES_PORT", "5432"),
+#     }
+# }
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
 
@@ -139,3 +149,8 @@ SPECTACULAR_SETTINGS = {
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 CORS_ALLOW_ALL_ORIGINS = True  # (or set specific React domain)
+
+CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", "redis://localhost:6379/0")
+CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", "redis://localhost:6379/0")
+
+ASGI_APPLICATION = "jobsmartai.asgi.application"

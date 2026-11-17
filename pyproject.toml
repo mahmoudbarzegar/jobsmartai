@@ -3,31 +3,50 @@ name = "JobSmartAI"
 version = "0.1.0"
 description = "AI-Powered Resume Parser & Job Finder"
 requires-python = ">=3.12"
-dependencies = [
+dependencies = []
+
+[dependency-groups]
+dev = [
     "pre-commit==4.6.0",
     "pytest==9.0.3",
     "ruff==0.15.15",
-    "django-cors-headers",
-    "requests",
-    "beautifulsoup4",
-    "pandas",
-    "streamlit_option_menu",
-    "PyMuPDF",
-    "drf-spectacular",
-    "djangorestframework",
-    "streamlit",
-    "pydantic==2.13.5",
     "djangorestframework-stubs>=3.18.1",
-    "django-environ==0.14.0",
+]
+backend = [
+    "torch",
     "sentence-transformers",
+    "django",
+    "djangorestframework",
+    "django-cors-headers",
+    "django-environ==0.14.0",
+    "drf-spectacular",
+    "psycopg[binary]>=3.3.7",
+    "celery==5.6.3",
+    "redis==8.1.0",
+    "daphne==4.2.3",
     "scikit-learn",
     "qdrant-client>=1.19.1",
     "fastembed==0.8.1",
     "langgraph>=1.2.16",
+    "PyMuPDF",
+    "beautifulsoup4",
+    "pandas",
+    "pydantic==2.13.5",
+    "requests",
+]
+frontend = [
+    "streamlit",
+    "streamlit_option_menu",
+    "requests",
+    "pandas",
+    "python-dotenv==1.2.4",
 ]
 
+[tool.uv]
+default-groups = ["dev", "backend", "frontend"]  # plain `uv sync` installs all locally
+
 [tool.uv.sources]
-torch = { index = "pytorch-cpu" }
+torch = [{ index = "pytorch-cpu", marker = "sys_platform == 'linux'" }]
 
 [[tool.uv.index]]
 name = "pytorch-cpu"
