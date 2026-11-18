@@ -14,25 +14,24 @@ from pathlib import Path
 
 import environ
 
-env = environ.Env()
-environ.Env.read_env()
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+env = environ.Env()
+environ.Env.read_env(BASE_DIR / ".env")
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = env.str("SECRET_KEY", default="8z_=t684xok+pnc=!!hq-%pve=(=#(7z9+lv2$&&6ln)po3ntm")
+SECRET_KEY = env.str("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env.bool("DEBUG", default=False)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["localhost", "127.0.0.1"])
 
 # Application definition
-
 INSTALLED_APPS = [
     # "daphne",
     "django.contrib.admin",
@@ -48,6 +47,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -55,7 +55,6 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "corsheaders.middleware.CorsMiddleware",
 ]
 
 ROOT_URLCONF = "jobsmartai.urls"
@@ -83,20 +82,15 @@ WSGI_APPLICATION = "jobsmartai.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": env("POSTGRES_DB", default="jobsmartai"),
+        "USER": env("POSTGRES_USER", default="jobsmartai"),
+        "PASSWORD": env("POSTGRES_PASSWORD", default=""),
+        "HOST": env("POSTGRES_HOST", default="localhost"),
+        "PORT": env("POSTGRES_PORT", default="5432"),
     }
 }
-# DATABASES = {
-#     "default": {
-#         "ENGINE": "django.db.backends.postgresql",
-#         "NAME": os.environ.get("POSTGRES_DB", "jobsmartai"),
-#         "USER": os.environ.get("POSTGRES_USER", "jobsmartai"),
-#         "PASSWORD": os.environ.get("POSTGRES_PASSWORD", ""),
-#         "HOST": os.environ.get("POSTGRES_HOST", "localhost"),
-#         "PORT": os.environ.get("POSTGRES_PORT", "5432"),
-#     }
-# }
+
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
 
@@ -154,3 +148,14 @@ CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", "redis://localhost:6379/
 CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", "redis://localhost:6379/0")
 
 ASGI_APPLICATION = "jobsmartai.asgi.application"
+
+QDRANT_HOST = env("QDRANT_HOST", default="127.0.0.1")
+QDRANT_PORT = env.int("QDRANT_PORT", default=6333)
+OLLAMA_URL = env("OLLAMA_URL", default="http://127.0.0.1:11434/api/generate")
+OLLAMA_MODEL = env("OLLAMA_MODEL", default="ministral-3:3b")
+
+EMBED_MODEL = env("EMBED_MODEL", default="all-MiniLM-L6-v2")
+SPARSE_MODEL = env("SPARSE_MODEL", default="Qdrant/bm25")
+RERANK_MODEL = env("RERANK_MODEL", default="cross-encoder/ms-marco-MiniLM-L-6-v2")
+AI_DEVICE = env("AI_DEVICE", default="cpu")
+FASTEMBED_CACHE = env("FASTEMBED_CACHE", default=None)
