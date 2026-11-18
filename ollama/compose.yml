@@ -1,0 +1,34 @@
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:11434:11434" # remove if only other containers need it
+    volumes:
+      - ollama_data:/root/.ollama
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks: [default, jobsmartai_network]
+
+  # Runs once: pulls the model into the shared volume, then exits
+  ollama-pull:
+    image: ollama/ollama:latest
+    depends_on:
+      ollama:
+        condition: service_healthy
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+    entrypoint: ["ollama", "pull", "ministral-3:3b"]
+    restart: "no"
+    networks: [default, jobsmartai_network]
+
+volumes:
+  ollama_data:
+
+networks:
+  jobsmartai_network:
+    external: true
