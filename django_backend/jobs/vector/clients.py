@@ -1,9 +1,32 @@
+from functools import lru_cache
+
+from django.conf import settings
 from fastembed import SparseTextEmbedding
 from qdrant_client import QdrantClient
 from sentence_transformers import CrossEncoder, SentenceTransformer
 
-qdrant_client = QdrantClient(host="127.0.0.1", port=6333)
-sentence_transformer_model = SentenceTransformer(model_name_or_path="all-MiniLM-L6-v2", device="cpu")
-ollama_url = "http://127.0.0.1:11434/api/generate"
-sparse_model = SparseTextEmbedding(model_name="Qdrant/bm25")
-reranker_model = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2", device="cpu")
+
+@lru_cache
+def get_qdrant() -> QdrantClient:
+    return QdrantClient(host=settings.QDRANT_HOST, port=settings.QDRANT_PORT)
+
+
+@lru_cache
+def get_dense_model() -> SentenceTransformer:
+    return SentenceTransformer(settings.EMBED_MODEL, device=settings.AI_DEVICE)
+
+
+@lru_cache
+def get_sparse_model() -> SparseTextEmbedding:
+    return SparseTextEmbedding(
+        model_name=settings.SPARSE_MODEL,
+        cache_dir=settings.FASTEMBED_CACHE,
+    )
+
+
+@lru_cache
+def get_reranker() -> CrossEncoder:
+    return CrossEncoder(settings.RERANK_MODEL, device=settings.AI_DEVICE)
+
+
+OLLAMA_URL = settings.OLLAMA_URL

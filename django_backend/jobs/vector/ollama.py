@@ -3,11 +3,12 @@ import re
 from typing import Any
 
 import requests
+from django.conf import settings
 from pydantic import BaseModel
 from sklearn.metrics.pairwise import cosine_similarity
 
 from ..schemas import ScoreExplanation
-from .clients import ollama_url, sentence_transformer_model
+from .clients import OLLAMA_URL, get_dense_model
 from .rag_vector import retrieve_chunks
 
 
@@ -20,9 +21,9 @@ def analyze_subject_with_ollama[T: BaseModel](subject_text: str, subject_type: s
     """
 
     response = requests.post(
-        ollama_url,
+        OLLAMA_URL,
         json={
-            "model": "mistral",
+            "model": settings.OLLAMA_MODEL,
             "prompt": prompt,
             "stream": False,
             "format": subject_schema.model_json_schema(),  # <-- this is the enforcement
@@ -102,9 +103,9 @@ def calculate_resume_job_score_description(resume_text: str, job_description: st
     """
 
     response = requests.post(
-        ollama_url,
+        OLLAMA_URL,
         json={
-            "model": "mistral",
+            "model": settings.OLLAMA_MODEL,
             "prompt": prompt,
             "stream": False,
             "format": ScoreExplanation.model_json_schema(),
@@ -137,7 +138,9 @@ def generate_cover_letter(resume_text: str, job_description: str) -> str | dict:
        - Output only the cover letter text
        """
 
-    response = requests.post(ollama_url, json={"model": "mistral", "prompt": prompt, "stream": False}, timeout=900)
+    response = requests.post(
+        OLLAMA_URL, json={"model": settings.OLLAMA_MODEL, "prompt": prompt, "stream": False}, timeout=900
+    )
 
     if response.status_code == 200:
         return parse_ollama_json_response(response)
@@ -146,7 +149,7 @@ def generate_cover_letter(resume_text: str, job_description: str) -> str | dict:
 
 
 def calculate_similarity_score(resume_value: str, job_value: str) -> float:
-    embeddings = sentence_transformer_model.encode([resume_value, job_value])
+    embeddings = get_dense_model().encode([resume_value, job_value])
     similarity = cosine_similarity([embeddings[0]], [embeddings[1]])
     return float(similarity[0][0])
 
@@ -172,7 +175,7 @@ def answer_question(
     """
 
     response = requests.post(
-        ollama_url,
+        OLLAMA_URL,
         json={"model": "mistral", "prompt": prompt, "stream": False},
         timeout=900,
     )

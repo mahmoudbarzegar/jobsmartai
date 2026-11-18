@@ -159,3 +159,45 @@ SPARSE_MODEL = env("SPARSE_MODEL", default="Qdrant/bm25")
 RERANK_MODEL = env("RERANK_MODEL", default="cross-encoder/ms-marco-MiniLM-L-6-v2")
 AI_DEVICE = env("AI_DEVICE", default="cpu")
 FASTEMBED_CACHE = env("FASTEMBED_CACHE", default=None)
+
+LOG_DIR = BASE_DIR / "logs"
+LOG_DIR.mkdir(exist_ok=True)
+LOG_FILE = env("LOG_FILE", default="app.log")
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "{asctime} {levelname} {name} {module}:{lineno} {message}",
+            "style": "{",
+        },
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "verbose",
+        },
+        "file": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": str(LOG_DIR / LOG_FILE),
+            "maxBytes": 5 * 1024 * 1024,  # rotate at 5 MB
+            "backupCount": 5,
+            "formatter": "verbose",
+            "encoding": "utf-8",
+        },
+        "error_file": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": str(LOG_DIR / f"errors-{LOG_FILE}"),
+            "maxBytes": 5 * 1024 * 1024,
+            "backupCount": 5,
+            "formatter": "verbose",
+            "level": "ERROR",  # only errors and tracebacks
+            "encoding": "utf-8",
+        },
+    },
+    "root": {
+        "handlers": ["console", "file", "error_file"],
+        "level": "INFO",
+    },
+}

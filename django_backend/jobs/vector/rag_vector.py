@@ -17,8 +17,8 @@ from qdrant_client.models import (
 )
 
 from ..models import JobModel, ResumeModel
-from .clients import reranker_model, sentence_transformer_model, sparse_model
-from .qdrant_collections import ensure_collection, qdrant_client
+from .clients import get_dense_model, get_reranker, get_sparse_model
+from .qdrant_collections import ensure_collection, get_qdrant
 
 
 def ingest_resume(resume: ResumeModel) -> None:
@@ -66,8 +66,8 @@ def _store_chunks(text: str, payload: dict) -> None:
     )
 
     chunks = _chunk_text(text)
-    dense_vectors = sentence_transformer_model.encode(chunks).tolist()
-    sparse_vectors = list(sparse_model.embed(chunks))
+    dense_vectors = get_dense_model().encode(chunks).tolist()
+    sparse_vectors = list(get_sparse_model().embed(chunks))
 
     points = []
     for chunk, dense_vec, sparse_vec in zip(chunks, dense_vectors, sparse_vectors, strict=True):
@@ -82,7 +82,7 @@ def _store_chunks(text: str, payload: dict) -> None:
             )
         )
 
-    qdrant_client.upsert(collection_name="rag_chunks", points=points)
+    get_qdrant().upsert(collection_name="rag_chunks", points=points)
 
 
 def delete_rag_chunks(resume_id: int | None = None, job_id: int | None = None):
@@ -92,7 +92,7 @@ def delete_rag_chunks(resume_id: int | None = None, job_id: int | None = None):
     if job_id:
         conditions.append(FieldCondition(key="job_id", match=MatchValue(value=job_id)))
 
-    qdrant_client.delete(
+    get_qdrant().delete(
         collection_name="rag_chunks",
         points_selector=Filter(must=conditions),
     )
@@ -105,15 +105,19 @@ def is_ingested(resume_id: int, job_id: int) -> bool:
         sparse_vectors_config={"sparse": SparseVectorParams()},
     )
 
-    count = qdrant_client.count(
-        collection_name="rag_chunks",
-        count_filter=Filter(
-            must=[
-                FieldCondition(key="resume_id", match=MatchValue(value=resume_id)),
-                FieldCondition(key="job_id", match=MatchValue(value=job_id)),
-            ]
-        ),
-    ).count
+    count = (
+        get_qdrant()
+        .count(
+            collection_name="rag_chunks",
+            count_filter=Filter(
+                must=[
+                    FieldCondition(key="resume_id", match=MatchValue(value=resume_id)),
+                    FieldCondition(key="job_id", match=MatchValue(value=job_id)),
+                ]
+            ),
+        )
+        .count
+    )
     return count > 0
 
 
@@ -125,8 +129,6 @@ def retrieve_chunks(
     job_filters: dict[str, str],
     top_k: int = 5,
 ) -> list[str]:
-    # question_vector = sentence_transformer_model.encode(question).tolist()
-
     resume_must_conditions = [
         FieldCondition(key="resume_id", match=MatchValue(value=resume_id)),
     ]
@@ -139,18 +141,6 @@ def retrieve_chunks(
 
     all_hits = resume_hits + job_hits
     all_hits.sort(key=lambda h: h.score, reverse=True)
-
-    # return [h.payload["text"] for h in resume_hits] + [h.payload["text"] for h in job_hits]
-
-    # seen = set()
-    # unique_chunks = []
-    # for hit in all_hits:
-    #     text = hit.payload["text"]
-    #     if text not in seen:
-    #         seen.add(text)
-    #         unique_chunks.append(text)
-    #     if len(unique_chunks) >= top_k:
-    #         break
 
     seen = set()
     candidate_chunks = []
@@ -167,8 +157,8 @@ def retrieve_chunks(
 def _get_hits(question: Any, must_conditions: list, filters: dict[str, str], top_k: int = 5) -> Any:
     filters = filters or {}
 
-    dense_vector = sentence_transformer_model.encode(question).tolist()
-    sparse_vector = list(sparse_model.embed([question]))[0]
+    dense_vector = get_dense_model().encode(question).tolist()
+    sparse_vector = list(get_sparse_model().embed([question]))[0]
 
     if "skills" in filters and filters["skills"].strip() != "":
         must_conditions.append(FieldCondition(key="skills", match=MatchText(text=filters["skills"])))
@@ -184,27 +174,24 @@ def _get_hits(question: Any, must_conditions: list, filters: dict[str, str], top
     if "description" in filters and filters["description"].strip() != "":
         must_conditions.append(FieldCondition(key="description", match=MatchText(text=filters["description"])))
 
-    # return qdrant_client.query_points(
-    #     collection_name="rag_chunks",
-    #     query=question_vector,
-    #     query_filter=Filter(must=must_conditions),
-    #     # limit=top_k,
-    # ).points
-
-    return qdrant_client.query_points(
-        collection_name="rag_chunks",
-        prefetch=[
-            Prefetch(query=dense_vector, using="dense", filter=Filter(must=must_conditions), limit=top_k),
-            Prefetch(
-                query=SparseVector(indices=sparse_vector.indices.tolist(), values=sparse_vector.values.tolist()),
-                using="sparse",
-                filter=Filter(must=must_conditions),
-                limit=top_k,
-            ),
-        ],
-        query=FusionQuery(fusion=Fusion.RRF),
-        limit=top_k,
-    ).points
+    return (
+        get_qdrant()
+        .query_points(
+            collection_name="rag_chunks",
+            prefetch=[
+                Prefetch(query=dense_vector, using="dense", filter=Filter(must=must_conditions), limit=top_k),
+                Prefetch(
+                    query=SparseVector(indices=sparse_vector.indices.tolist(), values=sparse_vector.values.tolist()),
+                    using="sparse",
+                    filter=Filter(must=must_conditions),
+                    limit=top_k,
+                ),
+            ],
+            query=FusionQuery(fusion=Fusion.RRF),
+            limit=top_k,
+        )
+        .points
+    )
 
 
 def _chunk_text(text: str, chunk_size: int = 300, overlap: int = 25) -> list[str]:
@@ -222,7 +209,7 @@ def _rerank_chunks(question: str, chunks: list[str], top_k: int = 5) -> list[str
         return []
 
     pairs = [(question, chunk) for chunk in chunks]
-    scores = reranker_model.predict(pairs)
+    scores = get_reranker().predict(pairs)
 
     scored_chunks = list(zip(chunks, scores, strict=True))
     scored_chunks.sort(key=lambda x: x[1], reverse=True)

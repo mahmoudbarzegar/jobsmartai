@@ -6,9 +6,8 @@ from rest_framework.views import APIView
 from ..constants import FIELD_WEIGHT_MAP
 from ..models import ApplicationModel, JobModel, ResumeModel
 from ..serializers import ApplicationSerializer
-from ..vector.clients import qdrant_client
+from ..vector.clients import get_dense_model, get_qdrant
 from ..vector.job_vector import store_job_vectors
-from ..vector.ollama import sentence_transformer_model
 from ..vector.resume_vector import store_resume_vectors
 
 
@@ -48,14 +47,18 @@ class FindBestResumes(APIView):
             field_scores_per_resume = {}
 
             for field_name in job_fields:
-                job_vector = sentence_transformer_model.encode(job_fields[field_name]).tolist()
+                job_vector = get_dense_model().encode(job_fields[field_name]).tolist()
 
-                hits = qdrant_client.query_points(
-                    collection_name="resumes",
-                    query=job_vector,
-                    using=field_name,
-                    limit=50,
-                ).points
+                hits = (
+                    get_qdrant()
+                    .query_points(
+                        collection_name="resumes",
+                        query=job_vector,
+                        using=field_name,
+                        limit=50,
+                    )
+                    .points
+                )
 
                 for hit in hits:
                     field_scores_per_resume.setdefault(hit.id, {})[field_name] = hit.score

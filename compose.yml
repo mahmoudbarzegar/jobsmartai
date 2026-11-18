@@ -4,10 +4,6 @@ services:
     build:
       context: .
       dockerfile: ./django_backend/Dockerfile
-#      args:
-#        HTTP_PROXY: http://127.0.0.1:12334
-#        HTTPS_PROXY: http://127.0.0.1:12334
-#        NO_PROXY: localhost,127.0.0.1
     image: jobsmartai-django
     command: >
         sh -c "
@@ -16,10 +12,15 @@ services:
     ports:
       - "8090:8000"
     env_file: ./django_backend/.env
+    volumes:
+      - hf_cache:/root/.cache/huggingface
+      - fastembed_cache:/models/fastembed
     depends_on:
       db:
         condition: service_healthy
       redis:
+        condition: service_started
+      qdrant:
         condition: service_started
     restart: unless-stopped
 
@@ -39,14 +40,27 @@ services:
     image: redis:7-alpine
     restart: unless-stopped
 
+  qdrant:
+    image: qdrant/qdrant:latest
+    ports:
+      - "127.0.0.1:6333:6333"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    restart: unless-stopped
+
   celery:
     image: jobsmartai-django
     command: celery -A jobsmartai worker -l info
     env_file: ./django_backend/.env
+    volumes:
+      - hf_cache:/root/.cache/huggingface
+      - fastembed_cache:/models/fastembed
     depends_on:
       db:
         condition: service_healthy
       redis:
+        condition: service_started
+      qdrant:
         condition: service_started
       django-backend:
         condition: service_started
@@ -64,20 +78,19 @@ services:
     build:
       context: .
       dockerfile: streamlit_frontend/Dockerfile
-#      network: host
-#      args:
-#        HTTP_PROXY: http://127.0.0.1:12334
-#        HTTPS_PROXY: http://127.0.0.1:12334
-#        NO_PROXY: localhost,127.0.0.1
+    environment:
+      API_URL: http://django-backend:8000/api
     ports:
       - "8501:8501"
-#    env_file: ./streamlit_frontend/.env
     depends_on:
       - django-backend
     restart: unless-stopped
 
 volumes:
   postgres_data:
+  qdrant_data:
+  hf_cache:
+  fastembed_cache:
 
 networks:
   default:

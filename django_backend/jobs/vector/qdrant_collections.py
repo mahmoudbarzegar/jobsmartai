@@ -1,10 +1,10 @@
 from typing import Any
 
-from .clients import qdrant_client
+from .clients import get_qdrant
 
 
 def ensure_collection(collection_name: str, vectors_config: Any, sparse_vectors_config: Any = None) -> None:
-    if qdrant_client.collection_exists(collection_name):
+    if get_qdrant().collection_exists(collection_name):
         return
 
     kwargs = {
@@ -15,4 +15,4 @@ def ensure_collection(collection_name: str, vectors_config: Any, sparse_vectors_
     if sparse_vectors_config is not None:
         kwargs["sparse_vectors_config"] = sparse_vectors_config
 
-    qdrant_client.create_collection(**kwargs)
+    get_qdrant().create_collection(**kwargs)

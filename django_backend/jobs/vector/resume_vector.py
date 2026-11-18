@@ -3,8 +3,7 @@ from qdrant_client.models import Distance, PointStruct, VectorParams
 
 from ..constants import FIELD_NAMES, VECTOR_SIZE
 from ..models import ResumeModel
-from .clients import qdrant_client
-from .ollama import sentence_transformer_model
+from .clients import get_dense_model, get_qdrant
 from .qdrant_collections import ensure_collection
 
 
@@ -22,9 +21,9 @@ def store_resume_vectors(resume: ResumeModel) -> None:
         "description": ", ".join(resume.keywords),
     }
 
-    vectors = {name: sentence_transformer_model.encode(text).tolist() for name, text in fields_to_embed.items()}
+    vectors = {name: get_dense_model().encode(text).tolist() for name, text in fields_to_embed.items()}
 
-    qdrant_client.upsert(
+    get_qdrant().upsert(
         collection_name="resumes",
         points=[PointStruct(id=resume.id, vector=vectors, payload={"resume_id": resume.id})],
     )

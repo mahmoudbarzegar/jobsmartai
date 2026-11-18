@@ -2,8 +2,7 @@ from qdrant_client.models import Distance, PointStruct, VectorParams
 
 from ..constants import FIELD_NAMES, VECTOR_SIZE
 from ..models import JobModel
-from .clients import qdrant_client
-from .ollama import sentence_transformer_model
+from .clients import get_dense_model, get_qdrant
 from .qdrant_collections import ensure_collection
 
 
@@ -23,9 +22,9 @@ def store_job_vectors(job: JobModel) -> None:
         "description": job.description,
     }
 
-    vectors = {name: sentence_transformer_model.encode(text).tolist() for name, text in fields_to_embed.items()}
+    vectors = {name: get_dense_model().encode(text).tolist() for name, text in fields_to_embed.items()}
 
-    qdrant_client.upsert(
+    get_qdrant().upsert(
         collection_name="jobs",
         points=[PointStruct(id=job.id, vector=vectors, payload={"job_id": job.id})],
     )

@@ -1,3 +1,5 @@
+import logging
+
 from drf_spectacular.utils import extend_schema
 from rest_framework import status, viewsets
 from rest_framework.parsers import FormParser, MultiPartParser
@@ -8,6 +10,8 @@ from ..schemas import ResumeInfo
 from ..serializers import ResumeSerializer
 from ..utils import extract_text_from_pdf
 from ..vector.ollama import analyze_subject_with_ollama
+
+logger = logging.getLogger(__name__)
 
 
 @extend_schema(tags=["Resume"])
@@ -45,6 +49,7 @@ class ResumeViewSet(viewsets.ModelViewSet):
             serializer.save(**data, resume_info_raw=data)
             return Response({"status": "success", "result": serializer.data}, status=status.HTTP_201_CREATED)
         except Exception as e:
+            logger.exception(f"The exception was happened: {str(e)}", exc_info=True)
             return Response({"status": "error", "error_message": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     def list(self, request, *args, **kwargs):
