@@ -178,7 +178,7 @@ def answer_question(
 
         response = requests.post(
             OLLAMA_URL,
-            json={"model": "mistral", "prompt": prompt, "stream": False},
+            json={"model": settings.OLLAMA_MODEL, "prompt": prompt, "stream": False},
             timeout=900,
         )
         return response.json()["response"]
