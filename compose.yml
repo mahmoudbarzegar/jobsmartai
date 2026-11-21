@@ -12,7 +12,10 @@ services:
     ports:
       - "8090:8000"
     env_file: ./django_backend/.env
+    environment:
+      LOG_FILE: django.log
     volumes:
+      - ./django_backend/logs:/app/logs
       - hf_cache:/root/.cache/huggingface
       - fastembed_cache:/models/fastembed
     depends_on:
@@ -50,9 +53,12 @@ services:
 
   celery:
     image: jobsmartai-django
+    environment:
+      LOG_FILE: celery.log
     command: celery -A jobsmartai worker -l info
     env_file: ./django_backend/.env
     volumes:
+      - ./django_backend/logs:/app/logs
       - hf_cache:/root/.cache/huggingface
       - fastembed_cache:/models/fastembed
     depends_on:
@@ -70,6 +76,10 @@ services:
     image: jobsmartai-django
     command: celery -A jobsmartai beat -l info
     env_file: ./django_backend/.env
+    environment:
+      LOG_FILE: beat.log
+    volumes:
+      - ./django_backend/logs:/app/logs
     depends_on:
       - celery
     restart: unless-stopped

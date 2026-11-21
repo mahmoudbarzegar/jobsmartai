@@ -1,4 +1,5 @@
 import json
+import logging
 import re
 from typing import Any
 
@@ -162,24 +163,28 @@ def answer_question(
     resume_filters: dict[str, str],
     job_filters: dict[str, str],
 ) -> str:
-    context_chunks = retrieve_chunks(question, resume_id, job_id, resume_filters, job_filters, top_k)
-    context = "\n\n".join(context_chunks)
+    try:
+        context_chunks = retrieve_chunks(question, resume_id, job_id, resume_filters, job_filters, top_k)
+        context = "\n\n".join(context_chunks)
 
-    prompt = f"""
-    Answer the question using ONLY the context below. If the answer isn't in the context, say so.
+        prompt = f"""
+        Answer the question using ONLY the context below. If the answer isn't in the context, say so.
 
-    Context:
-    {context}
+        Context:
+        {context}
 
-    Question: {question}
-    """
+        Question: {question}
+        """
 
-    response = requests.post(
-        OLLAMA_URL,
-        json={"model": "mistral", "prompt": prompt, "stream": False},
-        timeout=900,
-    )
-    return response.json()["response"]
+        response = requests.post(
+            OLLAMA_URL,
+            json={"model": "mistral", "prompt": prompt, "stream": False},
+            timeout=900,
+        )
+        return response.json()["response"]
+    except Exception as e:
+        logging.error(f"Exception in searching jobs, {str(e)}", exc_info=True)
+        return str(e)
 
 
 if __name__ == "__main__":

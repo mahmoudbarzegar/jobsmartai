@@ -1,3 +1,5 @@
+import logging
+
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import status
 from rest_framework.response import Response
@@ -20,19 +22,23 @@ class AskAboutMatchView(APIView):
         responses={200: AskAboutMatchResponseSerializer},
     )
     def post(self, request, resume_id, job_id):
-        resume = ResumeModel.objects.get(id=resume_id)
-        job = JobModel.objects.get(id=job_id)
+        try:
+            resume = ResumeModel.objects.get(id=resume_id)
+            job = JobModel.objects.get(id=job_id)
 
-        if not is_ingested(resume_id, job_id):
-            ingest_job(job=job)
-            ingest_resume(resume=resume)
+            if not is_ingested(resume_id, job_id):
+                ingest_job(job=job)
+                ingest_resume(resume=resume)
 
-        answer = answer_question(
-            question=request.data["question"],
-            resume_id=resume_id,
-            job_id=job_id,
-            resume_filters=request.data["resume_filters"],
-            job_filters=request.data["job_filters"],
-            top_k=request.data["top_k"],
-        )
-        return Response(data={"status": "success", "result": {"answer": answer}}, status=status.HTTP_200_OK)
+            answer = answer_question(
+                question=request.data["question"],
+                resume_id=resume_id,
+                job_id=job_id,
+                resume_filters=request.data["resume_filters"],
+                job_filters=request.data["job_filters"],
+                top_k=request.data["top_k"],
+            )
+            return Response(data={"status": "success", "result": {"answer": answer}}, status=status.HTTP_200_OK)
+        except Exception as e:
+            logging.error(f"Exception in searching jobs, {str(e)}", exc_info=True)
+            return Response({"status:": "error", "error_message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
